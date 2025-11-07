@@ -8,6 +8,7 @@ func SetupRouter() *http.ServeMux {
     mux := http.NewServeMux()
 
     AuthRoutes(mux)
+    UserRoutes(mux)
 
     mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusOK)
