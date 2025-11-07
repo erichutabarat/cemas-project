@@ -13,6 +13,11 @@ import (
 func GetUserProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	if r.Method != http.MethodGet {
+		http.Error(w, `{"error": "method not allowed"}`, http.StatusMethodNotAllowed)
+        return
+	}
+
 	pathParts := strings.Split(r.URL.Path, "/")
 	if len(pathParts) < 5 {
 		http.Error(w, `{"error": "invalid request path"}`, http.StatusBadRequest)

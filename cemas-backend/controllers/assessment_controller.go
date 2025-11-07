@@ -13,6 +13,11 @@ import (
 func GetAssessmentQuestions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	if r.Method != http.MethodGet {
+		http.Error(w, `{"error": "method not allowed"}`, http.StatusMethodNotAllowed)
+        return
+	}
+	
 	// Call the service to get questions
 	questions, err := services.GetAssessmentQuestions()
 	if err != nil {
@@ -26,6 +31,11 @@ func GetAssessmentQuestions(w http.ResponseWriter, r *http.Request) {
 // SubmitAssessment handles POST /api/assessment/answers
 func SubmitAssessment(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	if r.Method != http.MethodPost {
+		http.Error(w, `{"error": "method not allowed"}`, http.StatusMethodNotAllowed)
+        return
+	}
 
 	body, err := io.ReadAll(r.Body)
     if err != nil {

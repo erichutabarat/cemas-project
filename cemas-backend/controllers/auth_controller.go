@@ -12,6 +12,11 @@ import (
 func RegisterController(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     
+    if r.Method != http.MethodPost {
+		http.Error(w, `{"error": "method not allowed"}`, http.StatusMethodNotAllowed)
+        return
+	}
+
     var user models.RegisterRequest
     if err := json.NewDecoder(r.Body).Decode(&user); err != nil && err != io.EOF {
         http.Error(w, "Invalid JSON: "+err.Error(), http.StatusBadRequest)
@@ -33,6 +38,11 @@ func RegisterController(w http.ResponseWriter, r *http.Request) {
 func LoginController(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
 
+    if r.Method != http.MethodPost {
+		http.Error(w, `{"error": "method not allowed"}`, http.StatusMethodNotAllowed)
+        return
+	}
+    
     var user models.LoginRequest
     if err := json.NewDecoder(r.Body).Decode(&user); err != nil && err != io.EOF {
         http.Error(w, "Invalid JSON: "+err.Error(), http.StatusBadRequest)
