@@ -21,7 +21,7 @@ func RegisterController(w http.ResponseWriter, r *http.Request) {
     resp, err := services.Register(user.Email, user.Password, user.Name, user.Gender, user.Birthdate)
 
     if err != nil {
-        http.Error(w, "Registration failed (Service error)", http.StatusInternalServerError)
+        http.Error(w, resp.Message, http.StatusInternalServerError)
         return
     }
     
@@ -42,7 +42,7 @@ func LoginController(w http.ResponseWriter, r *http.Request) {
     resp, err := services.Login(user.Email, user.Password)
 
     if err != nil {
-        http.Error(w, "Login failed: Invalid credentials", http.StatusUnauthorized)
+        http.Error(w, resp.Message, http.StatusUnauthorized)
         return
     }
     
