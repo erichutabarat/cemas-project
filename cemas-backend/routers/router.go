@@ -9,7 +9,8 @@ func SetupRouter() *http.ServeMux {
 
     AuthRoutes(mux)
     UserRoutes(mux)
-
+    AssessmentRoutes(mux)
+    
     mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusOK)
         w.Write([]byte(`{"status": "ok", "message": "Server is running"}`))
