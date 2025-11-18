@@ -1,3 +1,4 @@
+import 'package:deteksi_cemas/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -9,12 +10,11 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
-      ),
+    return MaterialApp(
+      title: "Deteksi Cemas",
+      debugShowCheckedModeBanner: false,
+      initialRoute: "/onboarding",
+      routes: {"/onboarding": (context) => OnboardingScreen()},
     );
   }
 }
