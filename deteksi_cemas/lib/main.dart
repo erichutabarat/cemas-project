@@ -1,3 +1,4 @@
+import 'package:deteksi_cemas/features/auth/presentation/screens/register_screen.dart';
 import 'package:deteksi_cemas/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,8 +27,11 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       title: "Deteksi Cemas",
       debugShowCheckedModeBanner: false,
-      initialRoute: "/onboarding",
-      routes: {"/onboarding": (context) => OnboardingScreen()},
+      initialRoute: "/register",
+      routes: {
+        "/onboarding": (context) => OnboardingScreen(),
+        "/register": (context) => RegisterScreen(),
+      },
     );
   }
 }
