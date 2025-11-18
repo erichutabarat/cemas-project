@@ -1,8 +1,10 @@
 import 'package:deteksi_cemas/features/auth/presentation/screens/login_screen.dart';
 import 'package:deteksi_cemas/features/auth/presentation/screens/register_screen.dart';
+import 'package:deteksi_cemas/features/auth/presentation/states/auth_bloc.dart';
 import 'package:deteksi_cemas/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +19,7 @@ void main() {
     ),
   );
 
-  runApp(const MainApp());
+  runApp(BlocProvider(create: (context) => AuthBloc(), child: MainApp()));
 }
 
 class MainApp extends StatelessWidget {
