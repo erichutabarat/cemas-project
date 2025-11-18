@@ -11,11 +11,15 @@ class OnboardingContent extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Image.asset(item.image, height: 250),
+        Image.asset(item.image, height: 350),
         const SizedBox(height: 24),
         Text(
           item.title,
-          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
         const SizedBox(height: 12),
         Padding(
@@ -23,7 +27,7 @@ class OnboardingContent extends StatelessWidget {
           child: Text(
             item.description,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 16),
+            style: const TextStyle(fontSize: 16, color: Colors.white),
           ),
         ),
       ],

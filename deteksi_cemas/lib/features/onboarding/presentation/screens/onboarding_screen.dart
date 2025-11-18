@@ -17,48 +17,74 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          Expanded(
-            child: PageView.builder(
-              controller: controller.pageController,
-              itemCount: onboardingItems.length,
-              onPageChanged: (index) {
-                setState(() => controller.onPageChanged(index));
-              },
-              itemBuilder: (_, index) {
-                return OnboardingContent(item: onboardingItems[index]);
-              },
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF8E6AD8), Color(0xFF6AD8E0)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-
-          const SizedBox(height: 20),
-
-          OnboardingDots(
-            count: onboardingItems.length,
-            current: controller.currentIndex,
-          ),
-
-          const SizedBox(height: 20),
-
-          Padding(
-            padding: const EdgeInsets.only(bottom: 32),
-            child: ElevatedButton(
-              onPressed: () {
-                if (controller.currentIndex == onboardingItems.length - 1) {
-                  // Navigator.pushReplacementNamed(context, "/home");
-                } else {
-                  controller.nextPage();
-                }
-              },
-              child: Text(
-                controller.currentIndex == onboardingItems.length - 1
-                    ? "Get Started"
-                    : "Next",
+        ),
+        child: Column(
+          children: [
+            Expanded(
+              child: PageView.builder(
+                controller: controller.pageController,
+                itemCount: onboardingItems.length,
+                onPageChanged: (index) {
+                  setState(() => controller.onPageChanged(index));
+                },
+                itemBuilder: (_, index) {
+                  return OnboardingContent(item: onboardingItems[index]);
+                },
               ),
             ),
-          ),
-        ],
+
+            const SizedBox(height: 8),
+
+            OnboardingDots(
+              count: onboardingItems.length,
+              current: controller.currentIndex,
+            ),
+
+            const SizedBox(height: 18),
+
+            Padding(
+              padding: const EdgeInsets.only(bottom: 32),
+              child: SizedBox(
+                // 1. Mengatur lebar tombol menjadi 70% dari lebar layar
+                width: MediaQuery.of(context).size.width * 0.7,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (controller.currentIndex == onboardingItems.length - 1) {
+                      // Navigator.pushReplacementNamed(context, "/home");
+                    } else {
+                      controller.nextPage();
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Color(0xFF3B2A5F),
+                    elevation: 3,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: Text(
+                    controller.currentIndex == onboardingItems.length - 1
+                        ? "Get Started"
+                        : "Next",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -13,12 +13,16 @@ class OnboardingDots extends StatelessWidget {
       children: List.generate(count, (index) {
         final isActive = index == current;
         return AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 300),
           margin: const EdgeInsets.symmetric(horizontal: 4),
-          width: isActive ? 18 : 8,
+
+          width: isActive ? 24 : 8,
           height: 8,
+
           decoration: BoxDecoration(
-            color: isActive ? Colors.blue : Colors.grey,
+            color: isActive
+                ? Colors.white
+                : Colors.white.withValues(alpha: 0.4),
             borderRadius: BorderRadius.circular(20),
           ),
         );

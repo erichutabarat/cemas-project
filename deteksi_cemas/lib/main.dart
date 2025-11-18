@@ -1,7 +1,20 @@
 import 'package:deteksi_cemas/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  SystemChrome.setSystemUIOverlayStyle(
+    SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+      systemNavigationBarColor: Color(0xFF6AD8E0),
+      systemNavigationBarIconBrightness: Brightness.light,
+    ),
+  );
+
   runApp(const MainApp());
 }
 
