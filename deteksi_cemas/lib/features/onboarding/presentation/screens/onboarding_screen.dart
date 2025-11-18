@@ -57,7 +57,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     if (controller.currentIndex == onboardingItems.length - 1) {
-                      // Navigator.pushReplacementNamed(context, "/home");
+                      Navigator.pushReplacementNamed(context, "/login");
                     } else {
                       controller.nextPage();
                     }

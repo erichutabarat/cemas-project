@@ -28,7 +28,7 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       title: "Deteksi Cemas",
       debugShowCheckedModeBanner: false,
-      initialRoute: "/login",
+      initialRoute: "/onboarding",
       routes: {
         "/onboarding": (context) => OnboardingScreen(),
         "/register": (context) => RegisterScreen(),
