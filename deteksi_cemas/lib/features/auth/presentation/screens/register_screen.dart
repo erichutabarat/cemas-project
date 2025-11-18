@@ -112,7 +112,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   SizedBox(height: 20),
                   TextButton(
                     onPressed: () {
-                      Navigator.pop(context);
+                      Navigator.of(context).pushReplacementNamed("/login");
                     },
                     child: Text(
                       'Already have account? Login here',
