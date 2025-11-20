@@ -46,6 +46,7 @@ class _DashboardLayoutState extends State<DashboardLayout> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Container(
         child: _isLoading
             ? const Center(child: CircularProgressIndicator(color: Colors.red))
