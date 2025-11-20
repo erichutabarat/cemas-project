@@ -1,6 +1,7 @@
 import 'package:deteksi_cemas/features/auth/presentation/screens/login_screen.dart';
 import 'package:deteksi_cemas/features/auth/presentation/screens/register_screen.dart';
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_bloc.dart';
+import 'package:deteksi_cemas/features/dashboard/dashboard_layout.dart';
 import 'package:deteksi_cemas/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -35,6 +36,7 @@ class MainApp extends StatelessWidget {
         "/onboarding": (context) => OnboardingScreen(),
         "/register": (context) => RegisterScreen(),
         "/login": (context) => LoginScreen(),
+        "/dashboard": (context) => DashboardLayout(),
       },
     );
   }

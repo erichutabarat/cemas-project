@@ -51,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 backgroundColor: Colors.green,
               ),
             );
-            // Navigator.pushReplacementNamed(context, '/home');
+            Navigator.of(context).pushReplacementNamed("/dashboard");
           } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
