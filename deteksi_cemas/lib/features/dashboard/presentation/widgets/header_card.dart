@@ -35,7 +35,7 @@ class HeaderCard extends StatelessWidget {
                 ),
               ],
               gradient: LinearGradient(
-                colors: [Colors.blue.shade700, Colors.blue.shade400],
+                colors: [Colors.red.shade400, Colors.red.shade300],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),

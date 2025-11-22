@@ -3,6 +3,7 @@ import 'package:deteksi_cemas/features/dashboard/domain/models/article_model.dar
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/article_card.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/header_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,6 +15,12 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: Colors.red.shade400,
+        statusBarIconBrightness: Brightness.light,
+      ),
+    );
     // 💡 Use the full, unfiltered list of dummy data
     final List<ArticleModel> allArticles = dummyArticleData;
     return Scaffold(
@@ -22,7 +29,6 @@ class _HomeScreenState extends State<HomeScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: 10),
               HeaderCard(),
               SizedBox(height: 20),
               TextField(

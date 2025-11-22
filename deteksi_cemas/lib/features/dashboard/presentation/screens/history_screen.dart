@@ -23,8 +23,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
               Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.red.shade400,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(20),
+                    bottomRight: Radius.circular(20),
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.grey.shade300,
@@ -37,17 +40,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(Icons.history, color: Colors.blue),
+                    Icon(Icons.history, color: Colors.white),
                     SizedBox(width: 8),
                     Text(
                       "History",
                       style: TextStyle(
+                        color: Colors.white,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     SizedBox(width: 8),
-                    Icon(Icons.info_rounded),
+                    Icon(Icons.info_rounded, color: Colors.white),
                   ],
                 ),
               ),
