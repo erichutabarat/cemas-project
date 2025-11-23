@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class ArticleScreen extends StatefulWidget {
-  const ArticleScreen({super.key});
+  final ScrollController? controller;
+  const ArticleScreen({super.key, this.controller});
 
   @override
   State<ArticleScreen> createState() => _ArticleScreenState();
@@ -10,6 +11,11 @@ class ArticleScreen extends StatefulWidget {
 class _ArticleScreenState extends State<ArticleScreen> {
   @override
   Widget build(BuildContext context) {
-    return Text("Article Screen");
+    return Scaffold(
+      body: SingleChildScrollView(
+        controller: widget.controller,
+        child: Column(children: [Text("test")]),
+      ),
+    );
   }
 }

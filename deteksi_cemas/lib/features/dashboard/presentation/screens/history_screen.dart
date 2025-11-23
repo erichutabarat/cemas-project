@@ -4,7 +4,8 @@ import 'package:deteksi_cemas/features/dashboard/presentation/widgets/shaded_lin
 import 'package:flutter/material.dart';
 
 class HistoryScreen extends StatefulWidget {
-  const HistoryScreen({super.key});
+  final ScrollController? controller;
+  const HistoryScreen({super.key, this.controller});
 
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
@@ -17,6 +18,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       body: Padding(
         padding: EdgeInsets.all(0),
         child: SingleChildScrollView(
+          controller: widget.controller,
           child: Column(
             children: [
               // history header

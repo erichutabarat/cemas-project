@@ -6,7 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  // Declare the controller as nullable
+  final ScrollController? controller;
+
+  // Make the parameter nullable (ScrollController?) in the constructor
+  // You should also remove 'required' unless you enforce it elsewhere.
+  const HomeScreen({super.key, this.controller});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -27,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Padding(
         padding: EdgeInsetsGeometry.all(0),
         child: SingleChildScrollView(
+          controller: widget.controller,
           child: Column(
             children: [
               HeaderCard(),
