@@ -37,11 +37,49 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               HeaderCard(),
               SizedBox(height: 20),
-              TextField(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  label: Text("Search"),
-                  hintText: "Search something here",
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  // 1. Style the container/outline
+                  decoration: InputDecoration(
+                    // Use the OutlineInputBorder, but customize it for a modern look
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                        12,
+                      ), // Softer, more modern corners
+                      borderSide:
+                          BorderSide.none, // Hide the default thin border
+                    ),
+
+                    // 2. Use a subtle fill color for depth
+                    filled: true,
+                    fillColor: Colors.white, // Light grey background
+                    // 3. Labels and Hints
+                    labelText: "Search",
+                    hintText: "Search here...",
+
+                    // 4. Accent style when focused
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      // Use the primary color for a clean focus effect
+                      borderSide: BorderSide(
+                        color: Theme.of(context).primaryColor,
+                        width: 2.0,
+                      ),
+                    ),
+
+                    // 5. Add a modern icon
+                    prefixIcon: Icon(
+                      Icons.search_rounded,
+                      color: Colors.blueGrey,
+                    ),
+
+                    // 6. Ensure density is appropriate
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16.0,
+                      horizontal: 16.0,
+                    ),
+                  ),
                 ),
               ),
               SizedBox(height: 14),
