@@ -16,8 +16,10 @@ class RecordScreen extends StatefulWidget {
 }
 
 class _RecordScreenState extends State<RecordScreen> {
-  final bool _deviceConnected = false;
+  // CHANGED: Made non-final so we can update it from the bottom sheet
+  bool _deviceConnected = false;
   late RecordStatus _recordStatus = RecordStatus.idle;
+  int? _currentDeviceId; // Changed to nullable int for initial state
 
   // State variables
   Timer? _timer;
@@ -33,11 +35,21 @@ class _RecordScreenState extends State<RecordScreen> {
     super.dispose();
   }
 
+  // --- NEW: Handler to receive data from the bottom sheet ---
+  void _handleDeviceSave(String deviceId) {
+    setState(() {
+      // Assuming a simple connection logic here: if ID is non-empty, device is "connected"
+      _deviceConnected = deviceId.isNotEmpty;
+      // Convert ID to int, handle potential failure if necessary
+      _currentDeviceId = int.tryParse(deviceId) ?? 0;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        padding: EdgeInsets.symmetric(horizontal: 0),
+        padding: const EdgeInsets.symmetric(horizontal: 0),
         // decoration: BoxDecoration(color: Colors.black),
         child: SingleChildScrollView(
           controller: widget.controller,
@@ -45,10 +57,10 @@ class _RecordScreenState extends State<RecordScreen> {
             children: [
               // Record Header
               Container(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.red.shade400,
-                  borderRadius: BorderRadius.only(
+                  borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(20),
                     bottomRight: Radius.circular(20),
                   ),
@@ -57,7 +69,7 @@ class _RecordScreenState extends State<RecordScreen> {
                       color: Colors.grey.shade300,
                       spreadRadius: 2,
                       blurRadius: 5,
-                      offset: Offset(0, 3),
+                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),
@@ -66,12 +78,12 @@ class _RecordScreenState extends State<RecordScreen> {
                   children: [
                     GestureDetector(
                       onTap: widget.backtohome,
-                      child: Icon(Icons.arrow_back, color: Colors.white),
+                      child: const Icon(Icons.arrow_back, color: Colors.white),
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Column(
                       children: [
-                        Text(
+                        const Text(
                           "Record Heartbeat",
                           style: TextStyle(
                             color: Colors.white,
@@ -82,8 +94,8 @@ class _RecordScreenState extends State<RecordScreen> {
                         Text(
                           !_deviceConnected
                               ? "No Device Connected"
-                              : "Device Connected",
-                          style: TextStyle(
+                              : "Device ID: $_currentDeviceId", // Show connected ID
+                          style: const TextStyle(
                             color: Colors.white60,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -91,7 +103,7 @@ class _RecordScreenState extends State<RecordScreen> {
                         ),
                       ],
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Builder(
                       builder: (context) => GestureDetector(
                         // The Builder provides the working 'context'
@@ -114,13 +126,13 @@ class _RecordScreenState extends State<RecordScreen> {
                   ],
                 ),
               ),
-              SizedBox(height: 36),
+              const SizedBox(height: 36),
 
               // IoT Device Status
               if (!_deviceConnected)
                 Column(
                   children: [
-                    Text(
+                    const Text(
                       "No Device Connected",
                       style: TextStyle(
                         fontSize: 20,
@@ -128,9 +140,11 @@ class _RecordScreenState extends State<RecordScreen> {
                         color: Colors.red,
                       ),
                     ),
+                    // CRITICAL CHANGE: Pass the handler to the bottom sheet function
                     ElevatedButton.icon(
                       // The onPressed callback is clean: it just calls the helper function
-                      onPressed: () => _showBottomSheet(context),
+                      onPressed: () =>
+                          _showBottomSheet(context, _handleDeviceSave),
                       icon: const Icon(Icons.arrow_upward),
                       label: const Text(
                         'Set Device ID',
@@ -149,7 +163,7 @@ class _RecordScreenState extends State<RecordScreen> {
                   ],
                 ),
               if (_deviceConnected)
-                Column(
+                const Column(
                   children: [
                     Text(
                       "Device Connected, Ready to record!",
@@ -162,11 +176,11 @@ class _RecordScreenState extends State<RecordScreen> {
                   ],
                 ),
 
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Heartbeat animation
               HeartbeatAnimation(key: _heartbeatKey),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Record Button
               GestureDetector(
@@ -174,7 +188,7 @@ class _RecordScreenState extends State<RecordScreen> {
                   _startRecording(context);
                 },
                 child: Container(
-                  padding: EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: Colors.red.shade100,
                     borderRadius: BorderRadius.circular(50),
@@ -194,7 +208,7 @@ class _RecordScreenState extends State<RecordScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               Text(
                 _formatTime(_secondsElapsed),
@@ -203,7 +217,7 @@ class _RecordScreenState extends State<RecordScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 26),
+              const SizedBox(height: 26),
 
               // Record Heartbeat alternative
               Padding(
@@ -216,8 +230,8 @@ class _RecordScreenState extends State<RecordScreen> {
                   child: Column(
                     children: [
                       // Header Text
-                      Padding(
-                        padding: const EdgeInsets.only(
+                      const Padding(
+                        padding: EdgeInsets.only(
                           top: 16.0,
                         ), // Add padding for separation
                         child: Text(
@@ -230,7 +244,6 @@ class _RecordScreenState extends State<RecordScreen> {
                         ),
                       ),
 
-                      // --- FIX IS APPLIED HERE ---
                       Row(
                         crossAxisAlignment: CrossAxisAlignment
                             .start, // Align content to the top
@@ -257,7 +270,7 @@ class _RecordScreenState extends State<RecordScreen> {
                                 crossAxisAlignment: CrossAxisAlignment
                                     .start, // Align text to the start
                                 children: [
-                                  Text(
+                                  const Text(
                                     "You can use this survey to detect your anxiety level by filling HARS survey",
                                     style: TextStyle(
                                       color: Colors.white,
@@ -306,7 +319,7 @@ class _RecordScreenState extends State<RecordScreen> {
     }
     if (!_deviceConnected) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text("Can't play without IOT Device connected and ready"),
         ),
       );
@@ -333,9 +346,9 @@ class _RecordScreenState extends State<RecordScreen> {
         }
         state.toggleAnimation();
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Heartbeat animation error")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Heartbeat animation error")),
+        );
       }
     }
   }
@@ -386,48 +399,27 @@ class _RecordScreenState extends State<RecordScreen> {
     return '$minutesStr:$secondsStr';
   }
 
-  // Example code snippet
-  void _showBottomSheet(BuildContext context) {
+  // --- MODIFIED _showBottomSheet FUNCTION ---
+  // Now accepts a callback function to send the data back to the parent state
+  void _showBottomSheet(BuildContext context, void Function(String id) onSave) {
     // Calling the Flutter function to show a modal overlay from the bottom
     showModalBottomSheet<void>(
       context: context,
+      isScrollControlled:
+          true, // IMPORTANT: Needed to handle keyboard pushing up the sheet
       // Optional: Add a nice rounded shape to the top corners
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       // The builder function returns the widget that will be inside the sheet
       builder: (BuildContext sheetContext) {
-        // We use Padding and a Column to organize the content
+        // Use Padding to ensure the sheet is pushed up by the keyboard
         return Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            // Use MainAxisSize.min to ensure the sheet only takes the necessary height
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              const Text(
-                'Setup IoT Device ID!',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'This content was rendered by the separate _showBottomSheet function.',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              // Button to explicitly dismiss the sheet
-              ElevatedButton(
-                onPressed: () => Navigator.pop(sheetContext),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                child: const Text('Save'),
-              ),
-            ],
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
           ),
+          // Use the dedicated StatefulWidget for the sheet content
+          child: _IotIdSetupSheet(onSave: onSave),
         );
       },
     );
@@ -435,3 +427,139 @@ class _RecordScreenState extends State<RecordScreen> {
 }
 
 enum RecordStatus { idle, recording, recorded, sent }
+
+// --- NEW HELPER WIDGET FOR SHEET CONTENT ---
+// This StatefulWidget manages the input state and buttons within the modal sheet.
+
+class _IotIdSetupSheet extends StatefulWidget {
+  final void Function(String id) onSave;
+
+  const _IotIdSetupSheet({required this.onSave});
+
+  @override
+  State<_IotIdSetupSheet> createState() => _IotIdSetupSheetState();
+}
+
+class _IotIdSetupSheetState extends State<_IotIdSetupSheet> {
+  final TextEditingController _idController = TextEditingController();
+  String _currentDeviceId = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _idController.addListener(_updateDeviceId);
+  }
+
+  @override
+  void dispose() {
+    _idController.removeListener(_updateDeviceId);
+    _idController.dispose();
+    super.dispose();
+  }
+
+  void _updateDeviceId() {
+    setState(() {
+      _currentDeviceId = _idController.text;
+    });
+  }
+
+  void _onCheck() {
+    // REQUIREMENT: Check button (empty function for now)
+    if (kDebugMode) {
+      print('Checking ID: $_currentDeviceId');
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Checking $_currentDeviceId... (Placeholder)')),
+    );
+  }
+
+  void _onSave() {
+    // REQUIREMENT: Save function
+    if (kDebugMode) {
+      print('Saving ID: $_currentDeviceId');
+    }
+
+    // 1. Pass data back to the parent RecordScreen using the callback
+    widget.onSave(_currentDeviceId);
+
+    // 2. Close the bottom sheet
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isDeviceIdValid = _currentDeviceId.isNotEmpty;
+    final Color primaryColor = Theme.of(context).colorScheme.primary;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 20.0),
+      child: Column(
+        // Use MainAxisSize.min to ensure the sheet only takes the necessary height
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          const Text(
+            'Setup IoT Device ID',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+
+          // Input Field for IoT ID
+          TextField(
+            controller: _idController,
+            decoration: InputDecoration(
+              labelText: 'Enter Device ID (e.g., 1234)',
+              hintText: 'Should be numeric',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              prefixIcon: const Icon(Icons.wifi_tethering),
+            ),
+            keyboardType: TextInputType.number, // Suggest numeric input for IDs
+          ),
+          const SizedBox(height: 24),
+
+          // Buttons Row
+          Row(
+            children: [
+              // CHECK Button
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: isDeviceIdValid ? _onCheck : null,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: primaryColor,
+                    side: BorderSide(color: primaryColor),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text('Check'),
+                ),
+              ),
+              const SizedBox(width: 16),
+
+              // SAVE Button
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: isDeviceIdValid ? _onSave : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text('Save'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+}
