@@ -8,14 +8,15 @@ import 'package:flutter/material.dart';
 
 class RecordScreen extends StatefulWidget {
   final ScrollController? controller;
-  const RecordScreen({super.key, this.controller});
+  final void Function() backtohome;
+  const RecordScreen({super.key, this.controller, required this.backtohome});
 
   @override
   State<RecordScreen> createState() => _RecordScreenState();
 }
 
 class _RecordScreenState extends State<RecordScreen> {
-  final bool _deviceConnected = true;
+  final bool _deviceConnected = false;
   late RecordStatus _recordStatus = RecordStatus.idle;
 
   // State variables
@@ -63,7 +64,10 @@ class _RecordScreenState extends State<RecordScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(Icons.info_rounded, color: Colors.white),
+                    GestureDetector(
+                      onTap: widget.backtohome,
+                      child: Icon(Icons.arrow_back, color: Colors.white),
+                    ),
                     SizedBox(width: 8),
                     Column(
                       children: [
@@ -76,7 +80,9 @@ class _RecordScreenState extends State<RecordScreen> {
                           ),
                         ),
                         Text(
-                          "No Device Connected",
+                          !_deviceConnected
+                              ? "No Device Connected"
+                              : "Device Connected",
                           style: TextStyle(
                             color: Colors.white60,
                             fontSize: 14,
@@ -111,16 +117,51 @@ class _RecordScreenState extends State<RecordScreen> {
               SizedBox(height: 36),
 
               // IoT Device Status
-              Text(
-                _deviceConnected
-                    ? "Ready to record Heartbeat"
-                    : "No Device Connected",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: _deviceConnected ? Colors.green : Colors.red,
+              if (!_deviceConnected)
+                Column(
+                  children: [
+                    Text(
+                      "No Device Connected",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.red,
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      // The onPressed callback is clean: it just calls the helper function
+                      onPressed: () => _showBottomSheet(context),
+                      icon: const Icon(Icons.arrow_upward),
+                      label: const Text(
+                        'Set Device ID',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 30,
+                          vertical: 15,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
+              if (_deviceConnected)
+                Column(
+                  children: [
+                    Text(
+                      "Device Connected, Ready to record!",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
+
               SizedBox(height: 16),
 
               // Heartbeat animation
@@ -343,6 +384,53 @@ class _RecordScreenState extends State<RecordScreen> {
         : '$remainingSeconds';
 
     return '$minutesStr:$secondsStr';
+  }
+
+  // Example code snippet
+  void _showBottomSheet(BuildContext context) {
+    // Calling the Flutter function to show a modal overlay from the bottom
+    showModalBottomSheet<void>(
+      context: context,
+      // Optional: Add a nice rounded shape to the top corners
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      // The builder function returns the widget that will be inside the sheet
+      builder: (BuildContext sheetContext) {
+        // We use Padding and a Column to organize the content
+        return Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            // Use MainAxisSize.min to ensure the sheet only takes the necessary height
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              const Text(
+                'Setup IoT Device ID!',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'This content was rendered by the separate _showBottomSheet function.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              // Button to explicitly dismiss the sheet
+              ElevatedButton(
+                onPressed: () => Navigator.pop(sheetContext),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: const Text('Save'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
