@@ -246,7 +246,7 @@ class _RecordScreenState extends State<RecordScreen> {
 
                       Row(
                         crossAxisAlignment: CrossAxisAlignment
-                            .start, // Align content to the top
+                            .center, // Align content to the top
                         children: [
                           // 1. Image takes a flexible portion of the space
                           Expanded(
@@ -428,6 +428,8 @@ class _RecordScreenState extends State<RecordScreen> {
 
 enum RecordStatus { idle, recording, recorded, sent }
 
+enum IoTDeviceCheckStatus { idle, checking, ready, failed }
+
 // --- NEW HELPER WIDGET FOR SHEET CONTENT ---
 // This StatefulWidget manages the input state and buttons within the modal sheet.
 
@@ -443,7 +445,7 @@ class _IotIdSetupSheet extends StatefulWidget {
 class _IotIdSetupSheetState extends State<_IotIdSetupSheet> {
   final TextEditingController _idController = TextEditingController();
   String _currentDeviceId = '';
-
+  late IoTDeviceCheckStatus _iotcheckstatus = IoTDeviceCheckStatus.idle;
   @override
   void initState() {
     super.initState();
@@ -463,13 +465,33 @@ class _IotIdSetupSheetState extends State<_IotIdSetupSheet> {
     });
   }
 
-  void _onCheck() {
-    // REQUIREMENT: Check button (empty function for now)
+  Future<void> _onCheck(BuildContext context) async {
+    // Changed to Future<void> and added async
     if (kDebugMode) {
       print('Checking ID: $_currentDeviceId');
     }
+
+    // 1. Set status to checking
+    setState(() {
+      _iotcheckstatus = IoTDeviceCheckStatus.checking;
+    });
+
+    // 2. Introduce the delay (simulating a network request)
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (!mounted) return;
+
+    // 3. Set status to ready (or failed) after delay
+    setState(() {
+      _iotcheckstatus = IoTDeviceCheckStatus.ready;
+    });
+
+    // Show final status message
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Checking $_currentDeviceId... (Placeholder)')),
+      SnackBar(
+        content: Text('Device Check Complete! Status: Ready.'),
+        duration: const Duration(milliseconds: 1500),
+      ),
     );
   }
 
@@ -518,15 +540,31 @@ class _IotIdSetupSheetState extends State<_IotIdSetupSheet> {
             ),
             keyboardType: TextInputType.number, // Suggest numeric input for IDs
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 14),
 
+          Text(
+            _iotcheckstatus == IoTDeviceCheckStatus.idle
+                ? ""
+                : _iotcheckstatus == IoTDeviceCheckStatus.checking
+                ? "Checking..."
+                : _iotcheckstatus == IoTDeviceCheckStatus.ready
+                ? "Ready"
+                : "Failed",
+            style: TextStyle(
+              fontSize: 16,
+              color: (_iotcheckstatus == IoTDeviceCheckStatus.ready
+                  ? Colors.green
+                  : Colors.red),
+            ),
+          ),
+          const SizedBox(height: 14),
           // Buttons Row
           Row(
             children: [
               // CHECK Button
               Expanded(
                 child: OutlinedButton(
-                  onPressed: isDeviceIdValid ? _onCheck : null,
+                  onPressed: isDeviceIdValid ? () => _onCheck(context) : null,
                   style: OutlinedButton.styleFrom(
                     foregroundColor: primaryColor,
                     side: BorderSide(color: primaryColor),
