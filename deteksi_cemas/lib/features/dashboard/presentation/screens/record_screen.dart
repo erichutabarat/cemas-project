@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_final_fields
+// ignore_for_file: prefer_final_fields, use_build_context_synchronously
 
 import 'dart:async';
 
@@ -116,7 +116,7 @@ class _RecordScreenState extends State<RecordScreen> {
                         child: const Padding(
                           padding: EdgeInsets.symmetric(horizontal: 16.0),
                           child: Icon(
-                            Icons.settings_suggest_rounded,
+                            Icons.info_outline_rounded,
                             color: Colors.white,
                             size: 30,
                           ),
@@ -298,14 +298,58 @@ class _RecordScreenState extends State<RecordScreen> {
       ),
       endDrawer: Drawer(
         child: ListView(
-          padding: const EdgeInsets.all(0),
+          padding: EdgeInsets
+              .zero, // Use EdgeInsets.zero instead of const EdgeInsets.all(0)
           children: [
+            // Header
+            Container(
+              height: 120,
+              color: Theme.of(context).primaryColor,
+              child: const Center(
+                child: Text(
+                  'Record Screen Help',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            // Section 1: How to Record
             ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text(' My Profile '),
-              onTap: () {
-                Navigator.pop(context);
-              },
+              title: const Text('1. How to Record'),
+              subtitle: const Text(
+                'First, ensure your IoT device is connected. Then, use the central "Play/Pause" button to control data collection.',
+              ),
+              leading: Icon(
+                Icons.mic_none,
+                color: Theme.of(context).primaryColor,
+              ),
+            ),
+            const Divider(),
+            // Section 2: Device ID Setup (Actionable Info)
+            ListTile(
+              title: const Text('2. IoT Device Setup'),
+              subtitle: const Text(
+                'You must enter your unique IoT Device ID to start streaming data. Tap the "Set Device ID" button on the main screen.',
+              ),
+              leading: Icon(
+                Icons.qr_code_scanner,
+                color: Theme.of(context).primaryColor,
+              ),
+            ),
+            // Section 3: Alternative Method
+            const Divider(),
+            ListTile(
+              title: const Text('3. What if I don\'t have a device?'),
+              subtitle: const Text(
+                'If you don\'t have an IoT device, you can use the built-in HARS Survey (Hamilton Anxiety Rating Scale) to manually assess your anxiety.',
+              ),
+              leading: Icon(
+                Icons.question_answer_outlined,
+                color: Colors.blueGrey,
+              ),
             ),
           ],
         ),
