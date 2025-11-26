@@ -1,5 +1,5 @@
 import 'package:deteksi_cemas/features/dashboard/data/article_data.dart';
-import 'package:deteksi_cemas/features/dashboard/domain/models/article_model.dart';
+import 'package:deteksi_cemas/features/dashboard/data/models/article_model.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/article_card.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/header_card.dart';
 import 'package:flutter/material.dart';

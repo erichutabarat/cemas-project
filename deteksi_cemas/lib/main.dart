@@ -3,6 +3,8 @@ import 'package:deteksi_cemas/features/auth/presentation/screens/register_screen
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_bloc.dart';
 import 'package:deteksi_cemas/features/dashboard/dashboard_layout.dart';
 import 'package:deteksi_cemas/features/onboarding/presentation/screens/onboarding_screen.dart';
+import 'package:deteksi_cemas/features/survey/presentation/screens/hars_result_screen.dart';
+import 'package:deteksi_cemas/features/survey/presentation/screens/hars_survey_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,6 +39,8 @@ class MainApp extends StatelessWidget {
         "/register": (context) => RegisterScreen(),
         "/login": (context) => LoginScreen(),
         "/dashboard": (context) => DashboardLayout(),
+        "/hars_survey": (context) => HarsSurveyScreen(),
+        "/hars_result": (context) => HarsResultScreen(),
       },
     );
   }

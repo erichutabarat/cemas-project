@@ -1,4 +1,4 @@
-import '../domain/models/article_model.dart';
+import 'models/article_model.dart';
 
 final List<ArticleModel> dummyArticleData = [
   // Healthy Food Articles (Type: healthyFood)

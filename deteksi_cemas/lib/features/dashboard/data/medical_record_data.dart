@@ -1,4 +1,4 @@
-import 'package:deteksi_cemas/features/dashboard/domain/models/medical_record_model.dart';
+import 'package:deteksi_cemas/features/dashboard/data/models/medical_record_model.dart';
 
 final List<MedicalRecordModel> sampleMedicalRecords = [
   MedicalRecordModel(
