@@ -1,2 +1,9 @@
 .env
+# Ignore Go binaries
 deteksi_cemas_backend
+*.exe
+*.out
+
+# Ignore build/ output folders if any
+/build/
+bin/
