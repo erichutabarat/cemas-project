@@ -27,6 +27,7 @@ func main() {
 	// 3. Setup routes, passing the router and the DB instance
 	routes.SetupAuthRoutes(r, db)
 	routes.SetupAssessmentRoutes(r, db)
+	routes.SetupUserRoutes(r, db)
 
 	// 4. Run the server on port 8080
 	log.Println("Server listening on :8080")

@@ -99,9 +99,9 @@ func (ac *AuthController) Login(c *gin.Context) {
 	}
 
 	// 3. Generate a token
-	token, err := utils.GenerateAuthToken()
+	token, err := utils.GenerateJWT(user.ID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate authentication token"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
 
