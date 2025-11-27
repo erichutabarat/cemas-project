@@ -1,28 +1,32 @@
 // ignore_for_file: deprecated_member_use
 
-import 'package:deteksi_cemas/features/survey/data/assessment_questions.dart';
 import 'package:deteksi_cemas/features/survey/data/models/answer_requests_models.dart';
 import 'package:deteksi_cemas/features/survey/data/models/assessment_questions_models.dart';
 import 'package:deteksi_cemas/features/survey/data/models/assessment_results_models.dart';
+// NOTE: Assuming HarsQuestionsRepository is correctly imported here
+import 'package:deteksi_cemas/features/survey/data/repository/hars_questions.dart';
 import 'package:deteksi_cemas/features/survey/domain/calculate_anxiety_score.dart';
 import 'package:deteksi_cemas/features/survey/presentation/screens/hars_result_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-// Assuming AnswerRequests is the same as AnswerRequest from previous models.
-// If not, please adjust the import and class name accordingly.
-
 class HarsSurveyScreen extends StatefulWidget {
-  const HarsSurveyScreen({super.key});
+  // Inject the repository via the constructor
+  final HarsQuestionsRepository? surveyRepository;
+  const HarsSurveyScreen({super.key, this.surveyRepository});
 
   @override
   State<HarsSurveyScreen> createState() => _HarsSurveyScreenState();
 }
 
 class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
-  final List<AssessmentQuestion> _questions = harsQuestions;
-  late List<AnswerRequests> _answers; // Renamed for clarity and consistency
-  int _currentQuestionIndex = 0; // Renamed for clarity
+  List<AssessmentQuestion>? _questions;
+  // Initialize _answers as empty until questions are loaded
+  List<AnswerRequests> _answers = [];
+  bool _isLoading = true;
+  bool _hasError = false; // Added error state flag
+
+  int _currentQuestionIndex = 0;
 
   final List<String> _scoreLabels = [
     "0: Not present",
@@ -35,16 +39,49 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeAnswers();
+    // Only call loadQuestions in initState
+    _loadQuestions();
+    // We remove _initializeAnswers() here because it depends on _questions being non-null.
   }
 
+  Future<void> _loadQuestions() async {
+    try {
+      final fetchedQuestions = await widget.surveyRepository
+          ?.fetchHarsQuestions();
+
+      setState(() {
+        _questions = fetchedQuestions;
+        // 1. Initialize answers ONLY after questions are successfully loaded
+        _initializeAnswers();
+        _isLoading = false;
+        _hasError = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _hasError = true; // Set error flag
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to load questions: $e')));
+      }
+    }
+  }
+
+  // 2. Initialize answers using the loaded _questions! list
   void _initializeAnswers() {
-    _answers = _questions
-        .map((question) => AnswerRequests(questionId: question.id, score: -1))
-        .toList();
+    if (_questions != null) {
+      _answers = _questions!
+          .map((question) => AnswerRequests(questionId: question.id, score: -1))
+          .toList();
+    }
+    // If _questions is null, _answers remains [] (from initial definition)
   }
 
   void _previousQuestion() {
+    if (_questions == null || _isLoading) return; // Safety check
+
     if (_currentQuestionIndex > 0) {
       setState(() {
         _currentQuestionIndex--;
@@ -53,6 +90,9 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
   }
 
   void _nextQuestion() {
+    // Safety check: Cannot proceed if loading, in error state, or no questions
+    if (_questions == null || _isLoading || _hasError) return;
+
     // Check if an answer has been selected for the current question
     if (_answers[_currentQuestionIndex].score == -1) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,7 +104,9 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
       return; // Prevent moving forward without an answer
     }
 
-    if (_currentQuestionIndex < _questions.length - 1) {
+    // 3. Removed incorrect re-initialization of _answers here!
+
+    if (_currentQuestionIndex < _questions!.length - 1) {
       setState(() {
         _currentQuestionIndex++;
       });
@@ -75,28 +117,22 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
   }
 
   void _submitSurvey() {
-    // Here you would typically send _answers to your backend
-    // For now, let's just print them and navigate back
+    if (_questions == null || _isLoading) return;
+
     if (kDebugMode) {
       print('Submitting survey with answers:');
     }
-    for (var answer in _answers) {
-      if (kDebugMode) {
-        print('Question ID: ${answer.questionId}, Score: ${answer.score}');
-      }
-    }
 
-    // You might show a loading indicator here
-    String anxietyLevel = getAnxietyLevel(calculateTotalScore(), _questions);
-    if (kDebugMode) {
-      print(anxietyLevel);
-    }
-    // Then navigate back to the previous screen (e.g., HarsSurveyLandingScreen)
+    // Calculation requires non-null _questions list to pass to getAnxietyLevel
+    String anxietyLevel = getAnxietyLevel(calculateTotalScore(), _questions!);
+
     AssessmentResult finalResult = AssessmentResult(
       totalScore: calculateTotalScore(),
       anxietyLevel: anxietyLevel,
     );
-    Navigator.push(
+
+    // Use pushReplacement to prevent user from going back to the survey
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (context) => HarsResultScreen(result: finalResult),
@@ -105,11 +141,11 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
   }
 
   int calculateTotalScore() {
+    if (_questions == null) return 0; // Safety check
+
     int total = 0;
     for (var answer in _answers) {
-      if (answer.score == -1) {
-        continue;
-      } else {
+      if (answer.score != -1) {
         total += answer.score;
       }
     }
@@ -118,25 +154,50 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Access the current question
+    // 4. Handle Loading and Error states gracefully
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (_questions == null || _hasError || _questions!.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('HARS Survey')),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Failed to load questions or no questions available.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _loadQuestions,
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Now we can safely use _questions!
     final AssessmentQuestion currentQuestion =
-        _questions[_currentQuestionIndex];
-    // Access the current selected score for the current question
+        _questions![_currentQuestionIndex];
+
     final int? currentSelectedScore =
         _answers[_currentQuestionIndex].score == -1
         ? null
         : _answers[_currentQuestionIndex].score;
 
     final bool isFirstQuestion = _currentQuestionIndex == 0;
-    final bool isLastQuestion = _currentQuestionIndex == _questions.length - 1;
+    final bool isLastQuestion = _currentQuestionIndex == _questions!.length - 1;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('HARS Survey'),
         centerTitle: true,
-        backgroundColor: Theme.of(
-          context,
-        ).scaffoldBackgroundColor, // Match background for a clean look
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
       ),
       body: SafeArea(
@@ -151,22 +212,18 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
               child: Column(
                 children: [
                   Text(
-                    "Question ${_currentQuestionIndex + 1} of ${_questions.length}",
+                    "Question ${_currentQuestionIndex + 1} of ${_questions!.length}",
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: Colors.grey.shade700,
                     ),
                   ),
                   const SizedBox(height: 8),
                   LinearProgressIndicator(
-                    value: (_currentQuestionIndex + 1) / _questions.length,
+                    value: (_currentQuestionIndex + 1) / _questions!.length,
                     backgroundColor: Colors.grey.shade300,
-                    color: Theme.of(
-                      context,
-                    ).primaryColor, // Use theme primary color
+                    color: Theme.of(context).primaryColor,
                     minHeight: 8,
-                    borderRadius: BorderRadius.circular(
-                      10,
-                    ), // Rounded progress bar
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ],
               ),
@@ -186,8 +243,7 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
                     padding: const EdgeInsets.all(24.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisSize:
-                          MainAxisSize.min, // Use min size for the column
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           'Question ${_currentQuestionIndex + 1}',
@@ -211,7 +267,6 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
 
                         // Answer Options
                         Expanded(
-                          // Let the radio options take available space
                           child: ListView.builder(
                             itemCount: _scoreLabels.length,
                             itemBuilder: (context, index) {
@@ -232,11 +287,8 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
                                     context,
                                   ).textTheme.titleMedium,
                                 ),
-                                contentPadding:
-                                    EdgeInsets.zero, // Remove default padding
-                                activeColor: Theme.of(
-                                  context,
-                                ).primaryColor, // Use theme primary color
+                                contentPadding: EdgeInsets.zero,
+                                activeColor: Theme.of(context).primaryColor,
                               );
                             },
                           ),
@@ -285,8 +337,7 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed:
-                          _nextQuestion, // Logic handles validation and submission
+                      onPressed: _nextQuestion,
                       child: Text(
                         isLastQuestion ? "Submit Survey" : "Next",
                         style: const TextStyle(

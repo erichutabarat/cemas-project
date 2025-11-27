@@ -1,3 +1,5 @@
+import 'package:deteksi_cemas/features/survey/data/repository/hars_questions.dart';
+import 'package:deteksi_cemas/features/survey/presentation/screens/hars_survey_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -71,7 +73,7 @@ class ArticleScreen extends StatelessWidget {
                   if (kDebugMode) {
                     print('Start Survey tapped!');
                   }
-                  Navigator.of(context).pushReplacementNamed('/hars_survey');
+                  startSurvey(context);
                 },
                 icon: const Icon(Icons.psychology_alt),
                 label: const Text(
@@ -198,6 +200,21 @@ class ArticleScreen extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void startSurvey(BuildContext context) {
+    // 2. Instantiate the repository manually
+    final repository = HarsQuestionsRepository();
+
+    // 3. Navigate and pass the required argument
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HarsSurveyScreen(
+          surveyRepository: repository, // <-- FIX: Passing the dependency
         ),
       ),
     );
