@@ -16,5 +16,6 @@ func SetupUserRoutes(r *gin.Engine, db *gorm.DB) {
 	userRoutes.Use(middlewares.AuthMiddleware())
 	{
 		userRoutes.GET("/profile", userController.GetProfile)
+		userRoutes.PUT("/update", userController.UpdateProfile)
 	}
 }

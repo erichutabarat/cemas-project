@@ -7,6 +7,8 @@ import (
 	"gorm.io/gorm"
 	
 	"deteksi_cemas_backend/models" // Using the user-provided module path
+	"deteksi_cemas_backend/utils"
+	"time"
 )
 
 // UserController struct holds dependencies like the database connection
@@ -45,5 +47,83 @@ func (uc *UserController) GetProfile(c *gin.Context) {
 		"gender":	user.Gender,
 		"job":       user.Job,
 		"address":   user.Address,
+	})
+}
+
+// UpdateProfile handles updating the user's profile information.
+func (uc *UserController) UpdateProfile(c *gin.Context) {
+	// 1. Get user ID from JWT
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// 2. Bind incoming JSON dynamically
+	var input map[string]interface{}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON", "details": err.Error()})
+		return
+	}
+
+	// 3. Fetch the user from DB
+	var user models.User
+	if err := uc.DB.First(&user, userID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	// 4. Update fields dynamically
+	if pwd, ok := input["password"].(string); ok && pwd != "" {
+		hashedPwd, err := utils.HashPassword(pwd)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+			return
+		}
+		user.Password = hashedPwd
+	}
+
+	if name, ok := input["name"].(string); ok && name != "" {
+		user.Name = name
+	}
+
+	if birth, ok := input["birthdate"].(string); ok && birth != "" {
+		parsedDate, err := time.Parse("2006-01-02", birth)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid birthdate format. Use YYYY-MM-DD"})
+			return
+		}
+		user.Birthdate = parsedDate
+	}
+
+	if gender, ok := input["gender"].(string); ok && gender != "" {
+		user.Gender = gender
+	}
+
+	if job, ok := input["job"].(string); ok {
+		user.Job = &job
+	}
+
+	if address, ok := input["address"].(string); ok {
+		user.Address = &address
+	}
+
+	// 5. Save the updated user
+	if err := uc.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Profile updated successfully",
+		"user": gin.H{
+			"id":        user.ID,
+			"email":     user.Email,
+			"name":      user.Name,
+			"birthdate": user.Birthdate,
+			"gender":    user.Gender,
+			"job":       user.Job,
+			"address":   user.Address,
+		},
 	})
 }
