@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -24,29 +23,31 @@ func NewAuthController(db *gorm.DB) *AuthController {
 // Register handles new user registration.
 // It uses the DB connection stored in the AuthController struct.
 func (ac *AuthController) Register(c *gin.Context) {
-	var input models.User
+	var input models.AuthRegisterRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input format or missing fields", "details": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid input format or missing fields",
+			"details": err.Error(),
+		})
 		return
 	}
 
 	// 1. Check if email already exists
 	var existingUser models.User
 	result := ac.DB.Where("email = ?", input.Email).First(&existingUser)
-
 	if result.RowsAffected > 0 {
 		c.JSON(http.StatusConflict, gin.H{"error": "Email already registered"})
 		return
 	}
 
-	// 2. Hash the password using the utility function
+	// 2. Hash the password
 	hashedPassword, err := utils.HashPassword(input.Password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not process password"})
 		return
 	}
 
-	// 3. Create the new User object with all new fields
+	// 3. Create new User object
 	newUser := models.User{
 		Email:     input.Email,
 		Password:  hashedPassword,
@@ -57,9 +58,8 @@ func (ac *AuthController) Register(c *gin.Context) {
 		Address:   input.Address,
 	}
 
-	// 4. Save the user to the database
+	// 4. Save to DB
 	if result := ac.DB.Create(&newUser); result.Error != nil {
-		log.Printf("Database save error: %v", result.Error)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
 	}
@@ -71,6 +71,7 @@ func (ac *AuthController) Register(c *gin.Context) {
 		"name":    newUser.Name,
 	})
 }
+
 
 // Login handles user authentication, now solely by Email.
 func (ac *AuthController) Login(c *gin.Context) {
