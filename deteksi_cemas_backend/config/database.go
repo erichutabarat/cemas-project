@@ -3,19 +3,26 @@ package config
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"github.com/joho/godotenv"
 )
 
 // InitDB initializes the MySQL connection and performs auto-migration.
 // It returns the gorm.DB instance.
 func InitDB(modelsToMigrate ...interface{}) *gorm.DB {
+	err := godotenv.Load()
+    if err != nil {
+        log.Println("Warning: .env file not found, using system environment variables")
+    }
 	// IMPORTANT: Replace these placeholders with your actual MySQL credentials.
 	// Ensure your database 'gin_auth_db' exists or change the name here.
-	const DSN = "cemas_admin:Cemas_admin3532@tcp(127.0.0.1:3306)/cemas_db?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := os.Getenv("DB_DSN") // ✅ use a variable
 
-	db, err := gorm.Open(mysql.Open(DSN), &gorm.Config{})
+
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}

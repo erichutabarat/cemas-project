@@ -12,7 +12,12 @@ import (
 func main() {
 	// 1. Initialize the database connection and run migrations
 	// We pass the models that need to be migrated (User)
-	db := config.InitDB(&models.User{})
+	db := config.InitDB(
+    &models.User{},
+    &models.HarsResults{},
+    &models.HarsQuestions{},
+)
+
 
 	// 2. Initialize the Gin router
 	r := gin.Default()

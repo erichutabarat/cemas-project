@@ -15,4 +15,6 @@ type User struct {
 	Address   *string    `json:"address,omitempty"`// optional
 	CreatedAt time.Time `json:"created_at"` // Added back for GORM
 	UpdatedAt time.Time `json:"updated_at"`
+
+	HarsResults []HarsResults `gorm:"foreignKey:UserID" json:"hars_results,omitempty"` // association
 }
