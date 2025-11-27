@@ -127,3 +127,35 @@ func (uc *UserController) UpdateProfile(c *gin.Context) {
 		},
 	})
 }
+
+func (uc *UserController) GetHistory(c *gin.Context) {
+	// 1. Get user ID from JWT
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// 2. Fetch user's assessment history
+	var inspections []models.Inspection
+	if err := uc.DB.
+		Preload("Result").          // <--- this loads result if exists
+		Where("user_id = ?", userID).
+		Find(&inspections).Error; err != nil {
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch history"})
+		return
+	}
+
+	var HarsResults []models.HarsResults
+	if err := uc.DB.Where("user_id = ?", userID).Find(&HarsResults).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch HARS results"})
+		return
+	}
+	
+	// 3. Return the history
+	c.JSON(http.StatusOK, gin.H{
+		"inspections": inspections,
+		"hars_results": HarsResults,
+	})
+}

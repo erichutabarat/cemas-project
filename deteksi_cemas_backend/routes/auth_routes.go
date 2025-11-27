@@ -20,9 +20,4 @@ func SetupAuthRoutes(router *gin.Engine, db *gorm.DB) {
 		// POST /api/auth/login
 		auth.POST("/login", authController.Login)
 	}
-
-	// Example: A status route outside the auth group
-	router.GET("/api/status", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "API is running and configured"})
-	})
 }

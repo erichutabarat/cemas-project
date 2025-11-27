@@ -17,6 +17,10 @@ func main() {
 		&models.User{},
 		&models.HarsResults{},
 		&models.HarsQuestions{},
+		&models.Inspection{},
+		&models.Result{},
+		&models.RecommendationActivity{},
+		&models.RecommendationFood{},
 	)
 
 	migrations.SeedHarsQuestions(db)
@@ -28,7 +32,9 @@ func main() {
 	routes.SetupAuthRoutes(r, db)
 	routes.SetupAssessmentRoutes(r, db)
 	routes.SetupUserRoutes(r, db)
-
+	routes.SetupHeartbeatRoutes(r, db)
+	routes.SetupRecommendationRoutes(r, db)
+	
 	// 4. Run the server on port 8080
 	log.Println("Server listening on :8080")
 	if err := r.Run(":8080"); err != nil {

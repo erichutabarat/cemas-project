@@ -17,5 +17,6 @@ func SetupUserRoutes(r *gin.Engine, db *gorm.DB) {
 	{
 		userRoutes.GET("/profile", userController.GetProfile)
 		userRoutes.PUT("/update", userController.UpdateProfile)
+		userRoutes.GET("/history", userController.GetHistory)
 	}
 }
