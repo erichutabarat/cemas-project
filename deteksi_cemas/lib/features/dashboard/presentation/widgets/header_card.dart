@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class HeaderCard extends StatelessWidget {
-  const HeaderCard({super.key});
+  final String name;
+
+  const HeaderCard({super.key, required this.name});
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +68,7 @@ class HeaderCard extends StatelessWidget {
                           style: TextStyle(fontSize: 16, color: Colors.white70),
                         ),
                         Text(
-                          "John Doe",
+                          name,
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,

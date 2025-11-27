@@ -14,7 +14,14 @@ class AuthInitial extends AuthState {}
 class AuthLoading extends AuthState {}
 
 // State Sukses: Jika login berhasil
-class AuthSuccess extends AuthState {}
+class AuthSuccess extends AuthState {
+  final String token;
+  final String name;
+
+  const AuthSuccess({required this.token, required this.name});
+  @override
+  List<Object> get props => [token, name];
+}
 
 // State Error: Jika login gagal
 class AuthError extends AuthState {

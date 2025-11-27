@@ -1,3 +1,4 @@
+import 'package:deteksi_cemas/features/auth/domain/repository/auth_repository.dart';
 import 'package:deteksi_cemas/features/auth/presentation/screens/login_screen.dart';
 import 'package:deteksi_cemas/features/auth/presentation/screens/register_screen.dart';
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_bloc.dart';
@@ -22,7 +23,12 @@ void main() {
     ),
   );
 
-  runApp(BlocProvider(create: (context) => AuthBloc(), child: MainApp()));
+  runApp(
+    BlocProvider(
+      create: (context) => AuthBloc(authRepository: AuthRepository()),
+      child: MainApp(),
+    ),
+  );
 }
 
 class MainApp extends StatelessWidget {

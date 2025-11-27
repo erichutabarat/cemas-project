@@ -1,10 +1,15 @@
 // Ini adalah file screen Anda, misal: login_screen.dart
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_bloc.dart';
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_event.dart';
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:deteksi_cemas/features/auth/presentation/widget/appname_sketch.dart'; // Ganti path ini
+import 'package:deteksi_cemas/features/auth/presentation/widget/appname_sketch.dart';
+import 'package:deteksi_cemas/features/dashboard/domain/services/token_service.dart';
+
+final TokenStorageService tokenStorage = TokenStorageService();
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -43,15 +48,22 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: BlocConsumer<AuthBloc, AuthState>(
-        listener: (context, state) {
+        listener: (context, state) async {
           if (state is AuthSuccess) {
+            await tokenStorage.saveToken(state.token);
+            String userName = state.name;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Login Berhasil!'),
                 backgroundColor: Colors.green,
               ),
             );
-            Navigator.of(context).pushReplacementNamed("/dashboard");
+            Navigator.of(context).pushReplacementNamed(
+              "/dashboard",
+              arguments: {
+                'userName': userName, // Key: 'userName', Value: userName
+              },
+            );
           } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

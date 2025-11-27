@@ -8,11 +8,11 @@ import 'package:flutter/services.dart';
 class HomeScreen extends StatefulWidget {
   // Declare the controller as nullable
   final ScrollController? controller;
+  final String name;
 
   // Make the parameter nullable (ScrollController?) in the constructor
   // You should also remove 'required' unless you enforce it elsewhere.
-  const HomeScreen({super.key, this.controller});
-
+  const HomeScreen({super.key, this.controller, required this.name});
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -35,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
           controller: widget.controller,
           child: Column(
             children: [
-              HeaderCard(),
+              HeaderCard(name: widget.name),
               SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.all(8.0),

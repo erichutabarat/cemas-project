@@ -1,16 +1,20 @@
 // auth_bloc.dart
+import 'package:deteksi_cemas/features/auth/domain/repository/auth_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
+// Asumsi path file repository Anda
+
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  // State awalnya adalah AuthInitial
-  AuthBloc() : super(AuthInitial()) {
-    // Mendaftarkan handler untuk event 'LoginButtonPressed'
+  // 1. Deklarasikan variabel untuk menampung Repository
+  final AuthRepository authRepository;
+
+  // 2. Terima AuthRepository di constructor
+  AuthBloc({required this.authRepository}) : super(AuthInitial()) {
     on<LoginButtonPressed>(_onLoginButtonPressed);
   }
 
-  // Fungsi ini akan dipanggil setiap kali event LoginButtonPressed terjadi
   Future<void> _onLoginButtonPressed(
     LoginButtonPressed event,
     Emitter<AuthState> emit,
@@ -19,20 +23,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
 
     try {
-      // Simulasi delay panggilan ke backend (server)
-      await Future.delayed(const Duration(seconds: 2));
+      // 2. Panggil fungsi API Login dari Repository
+      // Fungsi ini akan melempar (throw) Exception jika login gagal (401)
+      final List<String> response = await authRepository.loginUser(
+        event.email,
+        event.password,
+      );
 
-      // --- INI LOGIKA IF/ELSE SEDERHANA ANDA ---
-      if (event.email == "test" && event.password == "test") {
-        // 2. Emit state SUKSES jika berhasil
-        emit(AuthSuccess());
-      } else {
-        // 3. Emit state ERROR jika gagal
-        emit(const AuthError("Email atau password Anda salah."));
-      }
+      // 3. Jika pemanggilan sukses (tidak melempar Exception), emit state SUKSES
+      // Anda bisa memasukkan token ke dalam AuthSuccess jika perlu
+      emit(AuthSuccess(token: response[0], name: response[1]));
+    } on Exception catch (e) {
+      // 4. Jika terjadi Exception (baik 401 atau masalah jaringan), emit state ERROR
+      // Gunakan pesan error dari Exception
+      emit(AuthError(e.toString().replaceFirst("Exception: ", "")));
     } catch (e) {
-      // Menangkap error jika ada masalah lain
-      emit(AuthError("Terjadi kesalahan: ${e.toString()}"));
+      // Menangkap error lain yang tidak terduga
+      emit(AuthError("Terjadi kesalahan tak terduga: ${e.toString()}"));
     }
   }
 }

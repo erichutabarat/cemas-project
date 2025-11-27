@@ -14,6 +14,7 @@ class DashboardLayout extends StatefulWidget {
 
 class _DashboardLayoutState extends State<DashboardLayout>
     with SingleTickerProviderStateMixin {
+  String _userName = '';
   int _currentPage = 0;
   bool _isLoading = false;
 
@@ -25,7 +26,7 @@ class _DashboardLayoutState extends State<DashboardLayout>
   double _previousScrollOffset = 0.0;
 
   List<Widget Function(ScrollController? controller)> get _pageBuilders => [
-    (controller) => HomeScreen(controller: controller),
+    (controller) => HomeScreen(controller: controller, name: _userName),
     (controller) => HistoryScreen(controller: controller),
     (controller) =>
         RecordScreen(controller: controller, backtohome: backToHomescreen),
@@ -54,6 +55,27 @@ class _DashboardLayoutState extends State<DashboardLayout>
 
     // Listen for scroll changes only on scrollable pages (like Home)
     _scrollController.addListener(_scrollListener);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Check if the userName has NOT been set yet (to avoid reading arguments multiple times)
+    if (_userName.isEmpty || _userName == 'Pengguna') {
+      // Access the arguments from the route settings
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final Map<String, dynamic>? arguments = args as Map<String, dynamic>?;
+      final receivedUserName = arguments?['userName'] ?? 'Pengguna';
+
+      // Use setState to update _userName.
+      // This is crucial: setState triggers the build method, which re-evaluates the _pageBuilders getter.
+      if (_userName != receivedUserName) {
+        setState(() {
+          _userName = receivedUserName;
+        });
+      }
+    }
   }
 
   @override
