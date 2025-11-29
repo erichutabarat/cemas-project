@@ -7,3 +7,4 @@ deteksi_cemas_backend
 # Ignore build/ output folders if any
 /build/
 bin/
+dist/

@@ -1,5 +1,7 @@
 package models
 
+import "gorm.io/gorm"
+
 type HarsQuestions struct {
     ID          int   `gorm:"primaryKey" json:"id"`
     Category    string `gorm:"not null" json:"category"`
@@ -8,7 +10,8 @@ type HarsQuestions struct {
 }
 
 type HarsResults struct {
-	ID uint `gorm:"primaryKey" json:"id"`
+	gorm.Model
+
 	UserID int `gorm:"not null" json:"user_id" binding:"required"`
 	Score int `gorm:"not null" json:"score" binding:"required"`
 	Level string `gorm:"not null" json:"level" binding:"required"`

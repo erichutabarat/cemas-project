@@ -34,10 +34,10 @@ func main() {
 	routes.SetupUserRoutes(r, db)
 	routes.SetupHeartbeatRoutes(r, db)
 	routes.SetupRecommendationRoutes(r, db)
-	
+
 	// 4. Run the server on port 8080
 	log.Println("Server listening on :8080")
-	if err := r.Run(":8080"); err != nil {
+	if err := r.Run("0.0.0.0:8080"); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
 }

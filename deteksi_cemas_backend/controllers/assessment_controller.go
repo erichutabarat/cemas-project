@@ -28,7 +28,6 @@ func (ac *AssessmentController) GetQuestions(c *gin.Context){
 
 func (ac *AssessmentController) SubmitAssessment(c *gin.Context){
 	var input struct {
-		ID uint         `json:"id" binding:"required"`
 		UserID int   `json:"user_id" binding:"required"`
 		Score int     `json:"score" binding:"required"`
 		Level string  `json:"level" binding:"required"`
@@ -39,7 +38,6 @@ func (ac *AssessmentController) SubmitAssessment(c *gin.Context){
 	}
 
 	result := models.HarsResults{
-		ID: input.ID,
 		UserID: input.UserID,
 		Score: input.Score,
 		Level: input.Level,
