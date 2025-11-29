@@ -238,7 +238,9 @@ class _ArticleScreenState extends State<ArticleScreen> {
 
                           onTap: () {
                             // Handle navigation to a detailed result screen
-                            print('Viewing details for ID: $id');
+                            if (kDebugMode) {
+                              print('Viewing details for ID: $id');
+                            }
                           },
                         ),
                       );

@@ -1,3 +1,4 @@
+import 'package:deteksi_cemas/features/dashboard/domain/services/token_service.dart';
 import 'package:flutter/material.dart';
 
 class SettingScreen extends StatefulWidget {
@@ -21,6 +22,10 @@ class _SettingScreenState extends State<SettingScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Logging out... (Placeholder)')),
     );
+    final tokenService = TokenStorageService();
+    tokenService.deleteToken();
+    // Navigate to login screen or onboarding after logout
+    Navigator.of(context).pushReplacementNamed('/login');
   }
 
   void _onToggleTheme(bool value) {
