@@ -148,7 +148,8 @@ func (uc *UserController) GetHistory(c *gin.Context) {
 	}
 
 	var HarsResults []models.HarsResults
-	if err := uc.DB.Where("user_id = ?", userID).Find(&HarsResults).Error; err != nil {
+	columnsToSelect := []string{"ID", "CreatedAt", "user_id", "score", "level"}
+	if err := uc.DB.Where("user_id = ?", userID).Select(columnsToSelect).Find(&HarsResults).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch HARS results"})
 		return
 	}
