@@ -3,6 +3,7 @@ import 'package:deteksi_cemas/features/survey/data/repository/hars_questions.dar
 import 'package:deteksi_cemas/features/survey/presentation/screens/hars_survey_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class ArticleScreen extends StatefulWidget {
   final ScrollController? controller;
@@ -15,42 +16,12 @@ class ArticleScreen extends StatefulWidget {
 class _ArticleScreenState extends State<ArticleScreen> {
   final UserRepository userRepository = UserRepository();
   late Future<List<dynamic>> userHistoryFuture;
-  // Example data (replace with actual backend data)
-  final String lastSurveyDate = 'Nov 25, 2025 at 10:30 AM';
-
-  final int lastScore = 18;
-
-  final String interpretation = 'Mild Anxiety';
-
-  final Color scoreColor = Colors.orange;
-
-  final List<Map<String, dynamic>> history = const [
-    {'date': 'Nov 18, 2025', 'score': 12},
-    {'date': 'Nov 11, 2025', 'score': 25},
-    {'date': 'Nov 04, 2025', 'score': 8},
-  ];
 
   @override
   void initState() {
     super.initState();
     // Fetch user history from the repository
-    userRepository
-        .fetchUsersSurveyHistory()
-        .then((data) {
-          setState(() {
-            // Update the UI with fetched data if needed
-            userHistoryFuture = Future.value(data);
-          });
-          if (kDebugMode) {
-            print('User History Data: $data');
-          }
-          // Process and update state with fetched data if needed
-        })
-        .catchError((error) {
-          if (kDebugMode) {
-            print('Error fetching user history: $error');
-          }
-        });
+    userHistoryFuture = userRepository.fetchUsersSurveyHistory();
   }
 
   @override
@@ -93,68 +64,210 @@ class _ArticleScreenState extends State<ArticleScreen> {
                 ],
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 12),
             // --- 2. Survey Information ---
-            _buildInfoCard(context),
-            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: _buildInfoCard(context),
+            ),
+            const SizedBox(height: 12),
 
             // --- 3. Action Block (Start Survey) ---
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: FilledButton.icon(
-                onPressed: () {
-                  if (kDebugMode) {
-                    print('Start Survey tapped!');
-                  }
-                  startSurvey(context);
-                },
-                icon: const Icon(Icons.psychology_alt),
-                label: const Text(
-                  'Start New Survey',
-                  style: TextStyle(fontSize: 18),
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: FilledButton.icon(
+                  onPressed: () {
+                    if (kDebugMode) {
+                      print('Start Survey tapped!');
+                    }
+                    startSurvey(context);
+                  },
+                  icon: const Icon(Icons.psychology_alt),
+                  label: const Text(
+                    'Start New Survey',
+                    style: TextStyle(fontSize: 18),
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 12),
 
-            // --- 4. Last Survey Summary ---
-            if (lastScore > 0) ...[
-              Text(
-                'Your Last Result',
+            // --- 4. Survey History ---
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Text(
+                'Survey History',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              const SizedBox(height: 12),
-              _buildLastResultCard(context),
-              const SizedBox(height: 32),
-            ],
-
-            // --- 5. Survey History ---
-            Text(
-              'Survey History',
-              style: Theme.of(context).textTheme.titleLarge,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 0),
 
             // List of previous results
-            ...history.map((result) {
-              return ListTile(
-                leading: const Icon(Icons.calendar_month, color: Colors.grey),
-                title: Text(result['date']!),
-                subtitle: Text('Score: ${result['score']}'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  // TODO: Navigate to the detailed view for this history item
-                  if (kDebugMode) {
-                    print('View history for ${result['date']}');
-                  }
-                },
-              );
-            }),
+            FutureBuilder<List<dynamic>>(
+              // 👈 1. Declare the Future type
+              future: userHistoryFuture, // 👈 2. Pass your Future variable
+              builder: (context, snapshot) {
+                // --- State 1: ConnectionState.waiting (or active) ---
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                // --- State 2: Error ---
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+
+                // --- State 3: Data Ready (snapshot.hasData == true) ---
+                // The data is available in snapshot.data
+                final List<dynamic> historyData = snapshot.data ?? [];
+
+                if (historyData.isEmpty) {
+                  return const Center(child: Text('No history records found.'));
+                }
+
+                // Build the list using ListView.builder
+                return Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: ListView.builder(
+                    itemCount: historyData.length,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemBuilder: (context, index) {
+                      // Access the dynamic data (which is a Map<String, dynamic> for each item)
+                      final item = historyData[index];
+
+                      final int? id = item['ID'];
+                      final int? score = item['score'];
+                      final String? level = item['level'];
+                      final Color levelColor = _getLevelColor(
+                        level,
+                      ); // Get the color
+                      final DateTime? createdAt = item['CreatedAt'] != null
+                          ? DateTime.tryParse(item['CreatedAt'])
+                          : null;
+
+                      final String dateString = createdAt != null
+                          ? DateFormat('MMM dd, yyyy').format(
+                              createdAt.toLocal(),
+                            ) // Use intl package for better formatting
+                          : 'N/A';
+
+                      // -------------------------------------------------------------------
+                      return Card(
+                        // Use a slight elevation and border for separation
+                        elevation: 2,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 6,
+                          horizontal: 0,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(
+                            color: levelColor.withValues(alpha: 0.5),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 8,
+                            horizontal: 16,
+                          ),
+
+                          // 💡 LEADING: Show colored icon indicating the severity
+                          leading: CircleAvatar(
+                            backgroundColor: levelColor.withValues(alpha: 0.2),
+                            child: Icon(
+                              Icons
+                                  .local_hospital_outlined, // Relevant health icon
+                              color: levelColor,
+                            ),
+                          ),
+
+                          // 💡 TITLE: Emphasize the interpretation (Level) and color-code it
+                          title: Text(
+                            level ?? 'Unknown Result',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: levelColor,
+                            ),
+                          ),
+
+                          // 💡 SUBTITLE: Combine the ID and Score for quick reference
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Score: ${score?.toString() ?? 'N/A'}',
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Record ID: ${id?.toString() ?? '#'}',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          // 💡 TRAILING: Keep the date clearly visible
+                          trailing: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                dateString,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const Text(
+                                'View Details',
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          onTap: () {
+                            // Handle navigation to a detailed result screen
+                            print('Viewing details for ID: $id');
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
     );
+  }
+
+  // Utility function inside _ArticleScreenState (or a mixin/util class)
+  Color _getLevelColor(String? level) {
+    if (level == null) return Colors.grey;
+
+    // Use lower-case comparison for robust parsing
+    switch (level.toLowerCase()) {
+      case 'mild anxiety':
+        return Colors.green.shade400; // Calmer color for low anxiety
+      case 'moderate anxiety':
+        return Colors.orange.shade700; // Warning color
+      case 'severe anxiety':
+        return Colors.red.shade600; // Alert color
+      default:
+        return Colors.blueGrey;
+    }
   }
 
   Widget _buildInfoCard(BuildContext context) {
@@ -179,58 +292,6 @@ class _ArticleScreenState extends State<ArticleScreen> {
               style: TextStyle(
                 fontStyle: FontStyle.italic,
                 color: Colors.redAccent,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLastResultCard(BuildContext context) {
-    return Card(
-      color: scoreColor.withValues(alpha: 0.2),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: scoreColor, width: 2),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  interpretation,
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: scoreColor,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Completed: $lastSurveyDate',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
-            ),
-            Container(
-              padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                color: scoreColor,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '$lastScore',
-                style: const TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                ),
               ),
             ),
           ],
