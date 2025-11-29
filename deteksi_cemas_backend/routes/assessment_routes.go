@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"deteksi_cemas_backend/controllers"
+	"deteksi_cemas_backend/middlewares"
 )
 
 // SetupAssessmentRoutes initializes and registers all assessment endpoints.
@@ -13,6 +14,7 @@ func SetupAssessmentRoutes(router *gin.Engine, db *gorm.DB){
 	
 	// Group routes under /api/assessment
 	assessment := router.Group("/api/assessment")
+	assessment.Use(middlewares.AuthMiddleware())
 	{
 		// POST /api/assessment/question
 		assessment.GET("/questions", assessmentController.GetQuestions)

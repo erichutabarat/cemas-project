@@ -27,8 +27,12 @@ func (ac *AssessmentController) GetQuestions(c *gin.Context){
 }
 
 func (ac *AssessmentController) SubmitAssessment(c *gin.Context){
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	var input struct {
-		UserID int   `json:"user_id" binding:"required"`
 		Score int     `json:"score" binding:"required"`
 		Level string  `json:"level" binding:"required"`
 	}
@@ -38,7 +42,7 @@ func (ac *AssessmentController) SubmitAssessment(c *gin.Context){
 	}
 
 	result := models.HarsResults{
-		UserID: input.UserID,
+		UserID: userID.(int),
 		Score: input.Score,
 		Level: input.Level,
 	}

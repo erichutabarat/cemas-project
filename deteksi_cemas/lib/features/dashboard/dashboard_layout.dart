@@ -3,6 +3,7 @@ import 'package:deteksi_cemas/features/dashboard/presentation/screens/history_sc
 import 'package:deteksi_cemas/features/dashboard/presentation/screens/home_screen.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/screens/record_screen.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/screens/setting_screen.dart';
+import 'package:deteksi_cemas/features/dashboard/domain/services/token_service.dart';
 import 'package:flutter/material.dart';
 
 class DashboardLayout extends StatefulWidget {
@@ -17,7 +18,6 @@ class _DashboardLayoutState extends State<DashboardLayout>
   String _userName = '';
   int _currentPage = 0;
   bool _isLoading = false;
-
   late AnimationController _fabAnimationController;
   late Animation<Offset> _fabSlideAnimation;
 
@@ -38,6 +38,7 @@ class _DashboardLayoutState extends State<DashboardLayout>
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    printToken();
 
     _fabAnimationController = AnimationController(
       vsync: this,
@@ -55,6 +56,16 @@ class _DashboardLayoutState extends State<DashboardLayout>
 
     // Listen for scroll changes only on scrollable pages (like Home)
     _scrollController.addListener(_scrollListener);
+  }
+
+  Future<void> printToken() async {
+    final tokenService = TokenStorageService();
+
+    // Use 'await' to pause execution until the Future completes and returns the String? value.
+    String? token = await tokenService.readToken();
+
+    // Now you can print the actual token or null
+    print('Token: $token');
   }
 
   @override
