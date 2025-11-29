@@ -1,16 +1,27 @@
+import 'package:deteksi_cemas/features/dashboard/domain/repository/user_repository.dart';
 import 'package:deteksi_cemas/features/survey/data/repository/hars_questions.dart';
 import 'package:deteksi_cemas/features/survey/presentation/screens/hars_survey_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-class ArticleScreen extends StatelessWidget {
+class ArticleScreen extends StatefulWidget {
   final ScrollController? controller;
   const ArticleScreen({super.key, required this.controller});
 
+  @override
+  State<ArticleScreen> createState() => _ArticleScreenState();
+}
+
+class _ArticleScreenState extends State<ArticleScreen> {
+  final UserRepository userRepository = UserRepository();
+  late Future<List<dynamic>> userHistoryFuture;
   // Example data (replace with actual backend data)
   final String lastSurveyDate = 'Nov 25, 2025 at 10:30 AM';
+
   final int lastScore = 18;
+
   final String interpretation = 'Mild Anxiety';
+
   final Color scoreColor = Colors.orange;
 
   final List<Map<String, dynamic>> history = const [
@@ -20,10 +31,33 @@ class ArticleScreen extends StatelessWidget {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    // Fetch user history from the repository
+    userRepository
+        .fetchUsersSurveyHistory()
+        .then((data) {
+          setState(() {
+            // Update the UI with fetched data if needed
+            userHistoryFuture = Future.value(data);
+          });
+          if (kDebugMode) {
+            print('User History Data: $data');
+          }
+          // Process and update state with fetched data if needed
+        })
+        .catchError((error) {
+          if (kDebugMode) {
+            print('Error fetching user history: $error');
+          }
+        });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
-        controller: controller,
+        controller: widget.controller,
         padding: const EdgeInsets.all(0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

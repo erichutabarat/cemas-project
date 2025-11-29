@@ -39,8 +39,6 @@ class _DashboardLayoutState extends State<DashboardLayout>
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-    printToken();
-
     _fabAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
