@@ -131,6 +131,25 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
       anxietyLevel: anxietyLevel,
     );
 
+    // Send to database
+    widget.surveyRepository
+        ?.fetchHarsSubmit(finalResult)
+        .then((success) {
+          if (success) {
+            if (kDebugMode) {
+              print('Survey submitted successfully.');
+            }
+          } else {
+            if (kDebugMode) {
+              print('Survey submission failed.');
+            }
+          }
+        })
+        .catchError((error) {
+          if (kDebugMode) {
+            print('Error during survey submission: $error');
+          }
+        });
     // Use pushReplacement to prevent user from going back to the survey
     Navigator.pushReplacement(
       context,

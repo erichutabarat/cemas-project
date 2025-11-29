@@ -4,6 +4,7 @@ import 'package:deteksi_cemas/features/dashboard/presentation/screens/home_scree
 import 'package:deteksi_cemas/features/dashboard/presentation/screens/record_screen.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/screens/setting_screen.dart';
 import 'package:deteksi_cemas/features/dashboard/domain/services/token_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class DashboardLayout extends StatefulWidget {
@@ -65,7 +66,9 @@ class _DashboardLayoutState extends State<DashboardLayout>
     String? token = await tokenService.readToken();
 
     // Now you can print the actual token or null
-    print('Token: $token');
+    if (kDebugMode) {
+      print('Token: $token');
+    }
   }
 
   @override

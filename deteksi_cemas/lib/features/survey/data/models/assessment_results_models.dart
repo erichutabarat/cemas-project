@@ -16,4 +16,8 @@ class AssessmentResult {
   Map<String, dynamic> toJson() {
     return {'total_score': totalScore, 'anxiety_level': anxietyLevel};
   }
+
+  Map<String, dynamic> toMap() {
+    return {'score': totalScore, 'level': anxietyLevel};
+  }
 }
