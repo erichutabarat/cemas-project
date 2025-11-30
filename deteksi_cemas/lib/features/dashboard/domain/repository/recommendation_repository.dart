@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http; // Make sure you import http
 
 class RecommendationRepository {
-  final String _baseUrl = "http://192.168.1.46:8080";
+  final String _baseUrl = dotenv.env['BACKEND_URL'] ?? 'http://localhost:8000';
 
   // Change return type to a more specific Map<String, dynamic>
   Future<Map<String, dynamic>> fetchRecommendations() async {

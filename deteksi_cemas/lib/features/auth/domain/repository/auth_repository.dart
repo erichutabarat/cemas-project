@@ -1,14 +1,14 @@
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 class AuthRepository {
-  // Ganti dengan IP Address server Go Gin Anda
-  final String _apiUrl = "http://192.168.1.46:8080/api/auth/login";
-
+  final String _apiUrl = dotenv.env['BACKEND_URL'] ?? "http://localhost:8080";
+  final String _loginEndpoint = "/api/auth/login";
   // Fungsi yang memanggil API Login
   Future<List<String>> loginUser(String email, String password) async {
     final response = await http.post(
-      Uri.parse(_apiUrl),
+      Uri.parse(_apiUrl + _loginEndpoint),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },

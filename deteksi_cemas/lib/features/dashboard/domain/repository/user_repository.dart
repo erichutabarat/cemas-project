@@ -1,10 +1,11 @@
 import 'package:deteksi_cemas/features/dashboard/domain/services/token_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class UserRepository {
   // Add your repository methods and properties here
-  final String _baseUrl = "http://192.168.1.46:8080";
+  final String _baseUrl = dotenv.env['BACKEND_URL'] ?? 'http://localhost:8000';
   final tokenService = TokenStorageService();
 
   // Get user history

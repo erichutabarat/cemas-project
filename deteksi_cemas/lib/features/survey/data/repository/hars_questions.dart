@@ -3,11 +3,12 @@ import 'dart:convert';
 import 'package:deteksi_cemas/features/dashboard/domain/services/token_service.dart';
 import 'package:deteksi_cemas/features/survey/data/models/assessment_results_models.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:deteksi_cemas/features/survey/data/models/assessment_questions_models.dart';
 
 class HarsQuestionsRepository {
-  final String _baseUrl = "http://192.168.1.46:8080";
+  final String _baseUrl = dotenv.env['BACKEND_URL'] ?? 'http://localhost:8000';
 
   Future<List<AssessmentQuestion>> fetchHarsQuestions() async {
     final tokenService = TokenStorageService();
