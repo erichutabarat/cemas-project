@@ -28,6 +28,9 @@ func main() {
 	// 2. Initialize the Gin router
 	r := gin.Default()
 
+	// 2.5. Serve static files from the "uploads" directory
+	r.Static("/uploads", "./uploads")
+	
 	// 3. Setup routes, passing the router and the DB instance
 	routes.SetupAuthRoutes(r, db)
 	routes.SetupAssessmentRoutes(r, db)

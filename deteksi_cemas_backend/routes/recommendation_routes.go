@@ -13,5 +13,7 @@ func SetupRecommendationRoutes(r *gin.Engine, db *gorm.DB) {
 	{
 		recommendationRoutes.GET("/activities", recommendationController.GetActivityRecommendations)
 		recommendationRoutes.GET("/foods", recommendationController.GetFoodRecommendations)
+		recommendationRoutes.POST("/upload/activity", recommendationController.UploadActivity)
+		recommendationRoutes.POST("/upload/food", recommendationController.UploadFood)
 	}
 }
