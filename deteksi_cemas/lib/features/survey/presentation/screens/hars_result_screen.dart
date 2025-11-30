@@ -1,5 +1,4 @@
 import 'package:deteksi_cemas/features/survey/data/models/assessment_results_models.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 // Ensure this path is correct for AssessmentResult
 
@@ -96,7 +95,9 @@ class _HarsResultScreenState extends State<HarsResultScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
-                color: levelColor.withOpacity(0.1), // Soft background color
+                color: levelColor.withValues(
+                  alpha: 0.3,
+                ), // Soft background color
                 child: Padding(
                   padding: const EdgeInsets.all(24.0),
                   child: Column(
@@ -163,38 +164,7 @@ class _HarsResultScreenState extends State<HarsResultScreen> {
               ),
               const SizedBox(height: 30),
 
-              // Action Buttons (Next Steps)
-              Text(
-                'Next Steps:',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 15),
-              _buildActionButton(
-                context,
-                'View Anxiety Resources',
-                Icons.book,
-                () {
-                  // TODO: Navigate to a screen with coping strategies, articles, etc.
-                  if (kDebugMode) {
-                    print('Navigate to resources');
-                  }
-                },
-              ),
-              const SizedBox(height: 10),
-              _buildActionButton(
-                context,
-                'Find Professional Help',
-                Icons.medical_services,
-                () {
-                  // TODO: Navigate to a screen to find therapists, doctors, etc.
-                  if (kDebugMode) {
-                    print('Navigate to professional help');
-                  }
-                },
-              ),
-              const SizedBox(height: 10),
+              // Action Buttons (Next Steps
               _buildActionButton(
                 context,
                 'Go to Home',

@@ -1,5 +1,7 @@
 import 'package:deteksi_cemas/features/dashboard/domain/repository/user_repository.dart';
+import 'package:deteksi_cemas/features/survey/data/models/assessment_results_models.dart';
 import 'package:deteksi_cemas/features/survey/data/repository/hars_questions.dart';
+import 'package:deteksi_cemas/features/survey/presentation/screens/hars_result_screen.dart';
 import 'package:deteksi_cemas/features/survey/presentation/screens/hars_survey_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -139,9 +141,9 @@ class _ArticleScreenState extends State<ArticleScreen> {
                       // Access the dynamic data (which is a Map<String, dynamic> for each item)
                       final item = historyData[index];
 
-                      final int? id = item['ID'];
-                      final int? score = item['score'];
-                      final String? level = item['level'];
+                      final int id = item['ID'];
+                      final int score = item['score'];
+                      final String level = item['level'];
                       final Color levelColor = _getLevelColor(
                         level,
                       ); // Get the color
@@ -154,6 +156,14 @@ class _ArticleScreenState extends State<ArticleScreen> {
                               createdAt.toLocal(),
                             ) // Use intl package for better formatting
                           : 'N/A';
+
+                      // Assessment Result
+                      final AssessmentResult result = AssessmentResult(
+                        id: id,
+                        totalScore: score,
+                        anxietyLevel: level,
+                        createdAt: createdAt,
+                      );
 
                       // -------------------------------------------------------------------
                       return Card(
@@ -188,7 +198,7 @@ class _ArticleScreenState extends State<ArticleScreen> {
 
                           // 💡 TITLE: Emphasize the interpretation (Level) and color-code it
                           title: Text(
-                            level ?? 'Unknown Result',
+                            level,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
@@ -201,12 +211,12 @@ class _ArticleScreenState extends State<ArticleScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Score: ${score?.toString() ?? 'N/A'}',
+                                'Score: ${score.toString()}',
                                 style: const TextStyle(fontSize: 14),
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Record ID: ${id?.toString() ?? '#'}',
+                                'Record ID: ${id.toString()}',
                                 style: TextStyle(
                                   color: Colors.grey.shade600,
                                   fontSize: 12,
@@ -241,6 +251,15 @@ class _ArticleScreenState extends State<ArticleScreen> {
                             if (kDebugMode) {
                               print('Viewing details for ID: $id');
                             }
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => HarsResultScreen(
+                                  result:
+                                      result, // Pass the AssessmentResult object
+                                ),
+                              ),
+                            );
                           },
                         ),
                       );

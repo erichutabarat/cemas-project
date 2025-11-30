@@ -129,6 +129,8 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
     AssessmentResult finalResult = AssessmentResult(
       totalScore: calculateTotalScore(),
       anxietyLevel: anxietyLevel,
+      id: -1,
+      createdAt: null,
     );
 
     // Send to database

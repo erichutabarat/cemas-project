@@ -71,7 +71,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     radius: 30,
                     backgroundColor: Theme.of(
                       context,
-                    ).primaryColor.withOpacity(0.1),
+                    ).primaryColor.withValues(alpha: 0.3),
                     child: Icon(
                       Icons.person,
                       size: 30,
