@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../data/models/article_model.dart';
 
@@ -9,7 +10,10 @@ class ArticleCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const Color cardColor = Colors.white;
-
+    const String fallbackAssetPath = 'assets/images/onboarding_welcome.png';
+    if (kDebugMode) {
+      print("Data Article Card: $article");
+    }
     return Card(
       color: cardColor,
       elevation: 4,
@@ -43,9 +47,42 @@ class ArticleCardWidget extends StatelessWidget {
               width: double.infinity,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
-                image: DecorationImage(
-                  image: AssetImage(article.imageUrl),
+                // Use a background color while loading
+                color: Colors.grey[200],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                // Use Image.network to handle remote URL loading and error states
+                child: Image.network(
+                  'http://192.168.1.46:8080${article.imageUrl}',
                   fit: BoxFit.cover,
+
+                  // 🎯 The fix is here: using errorBuilder for fallback
+                  errorBuilder: (context, error, stackTrace) {
+                    // If the image fails to load from the network, show a local asset
+                    return Image.asset(
+                      fallbackAssetPath,
+                      fit: BoxFit.cover,
+                      // Fallback for if the local asset itself is missing
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(
+                          child: Icon(
+                            Icons.broken_image,
+                            size: 50,
+                            color: Colors.grey,
+                          ),
+                        );
+                      },
+                    );
+                  },
+
+                  // Optional: Add a simple loading indicator
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    );
+                  },
                 ),
               ),
             ),
