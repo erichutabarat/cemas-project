@@ -120,6 +120,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 24,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          40,
+                        ), // Standard Google rounded corners
+                      ),
+                      side: const BorderSide(
+                        color: Colors.grey,
+                      ), // Light border
+                    ),
+                    onPressed: () {
+                      // Empty function
+                    },
+                    child: Row(
+                      mainAxisSize:
+                          MainAxisSize.min, // Shrinks Row to content size
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.network(
+                          'https://developers.google.com/identity/images/g-logo.png',
+                          height: 24,
+                          width: 24,
+                        ),
+                        const SizedBox(
+                          width: 12,
+                        ), // Spacing between logo and text
+                        const Text(
+                          'Sign Up with Google',
+                          style: TextStyle(
+                            color: Colors.black87,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),

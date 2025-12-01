@@ -14,31 +14,31 @@ final onboardingItems = [
   OnboardingItem(
     title: "Deteksi Cemas",
     description:
-        "Selamat datang di aplikasi Deteksi Cemas, dimana anda dapat mendeteksi tingkat kecemasan sedari dini.",
+        "Welcome to the Deteksi Cemas, where you can detect your anxiety levels early.",
     image: "assets/images/onboarding_welcome.png",
   ),
   OnboardingItem(
-    title: "Periksa Detak Jantung",
+    title: "Check Heartbeat",
     description:
-        "Dengan device IoT dan machine learning, anda dapat memeriksa detak jantung dengan akurasi yang tinggi untuk mendeteksi tingkat kecemasan.",
+        "With IoT devices and machine learning, you can check your heartbeat with high accuracy to detect anxiety levels.",
     image: "assets/images/onboarding_heartbeat.png",
   ),
   OnboardingItem(
-    title: "Survey Kondisi Pengguna",
+    title: "User Condition Survey",
     description:
-        "Dengan survey ini, kami dapat memahami kondisi anda dengan lebih baik untuk memberikan rekomendasi yang tepat.",
+        "With this survey, we can better understand your condition to provide accurate recommendations.",
     image: "assets/images/onboarding_survey.png",
   ),
   OnboardingItem(
-    title: "Lihat Riwayat Pengguna",
+    title: "View User History",
     description:
-        "Dengan fitur riwayat, anda dapat mengawasi tingkat kecemasan secara berkala untuk melakukan terapi.",
+        "With the history feature, you can monitor anxiety levels regularly for therapy.",
     image: "assets/images/onboarding_history.png",
   ),
   OnboardingItem(
-    title: "Jelajahi Fitur Lainnya",
+    title: "Explore More Features",
     description:
-        "Temukan berbagai fitur tambahan yang dapat membantu anda dalam mengelola kecemasan.",
+        "Discover various additional features that can help you manage anxiety.",
     image: "assets/images/onboarding_explore.png",
   ),
 ];
