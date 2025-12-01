@@ -1,9 +1,10 @@
-// Ini adalah file screen Anda, misal: login_screen.dart
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_bloc.dart';
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_event.dart';
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_state.dart';
+// Ensure this import points to the file created above
+import 'package:deteksi_cemas/features/onboarding/domain/repository/backend_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:deteksi_cemas/features/auth/presentation/widget/appname_sketch.dart';
@@ -21,6 +22,10 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
+  // Colors based on your gradient
+  final Color _colorPink = const Color(0xFFff0f7b);
+  final Color _colorOrange = const Color(0xFFf89b29);
 
   @override
   void dispose() {
@@ -47,22 +52,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
+      // Attached the Backend Drawer here
+      endDrawer: _buildBackendDrawer(context),
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) async {
           if (state is AuthSuccess) {
             await tokenStorage.saveToken(state.token);
             String userName = state.name;
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
+              const SnackBar(
                 content: Text('Login Berhasil!'),
                 backgroundColor: Colors.green,
               ),
             );
             Navigator.of(context).pushReplacementNamed(
               "/dashboard",
-              arguments: {
-                'userName': userName, // Key: 'userName', Value: userName
-              },
+              arguments: {'userName': userName},
             );
           } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -73,16 +78,16 @@ class _LoginScreenState extends State<LoginScreen> {
             );
           }
         },
-
         builder: (context, state) {
           return Stack(
             fit: StackFit.expand,
             children: [
+              // 1. Background Gradient
               Container(
                 height: blueContainerHeight,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFFff0f7b), Color(0xFFf89b29)],
+                    colors: [_colorPink, _colorOrange],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -90,13 +95,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: appNameSketch(),
               ),
 
+              // 2. White Card Content
               Positioned(
                 top: blueContainerHeight - overlapAmount,
                 left: 0,
                 right: 0,
                 bottom: 0,
                 child: Container(
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(30),
@@ -107,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     physics: const ClampingScrollPhysics(),
                     padding: const EdgeInsets.all(24.0),
                     children: [
-                      Center(
+                      const Center(
                         child: Text(
                           'Login Your Account',
                           style: TextStyle(
@@ -120,40 +126,42 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 20),
                       TextField(
                         controller: _emailController,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: "Email",
                           hintText: "youremail@example.com",
                           border: OutlineInputBorder(),
                         ),
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       TextField(
                         controller: _passwordController,
                         obscureText: true,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: "Password",
                           hintText: "Enter your password",
                           border: OutlineInputBorder(),
                         ),
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
+
+                      // Login Button
                       SizedBox(
                         width: double.infinity,
-
                         child: (state is AuthLoading)
                             ? const Center(child: CircularProgressIndicator())
                             : ElevatedButton(
-                                onPressed:
-                                    _onLoginPressed, // Panggil fungsi helper
+                                onPressed: _onLoginPressed,
                                 style: ElevatedButton.styleFrom(
-                                  padding: EdgeInsets.symmetric(vertical: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(30),
                                   ),
-                                  backgroundColor: Color(0xFFff0f7b),
+                                  backgroundColor: _colorPink,
                                   foregroundColor: Colors.white,
                                 ),
-                                child: Text(
+                                child: const Text(
                                   'Login',
                                   style: TextStyle(
                                     fontSize: 18,
@@ -162,7 +170,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
+
+                      // Register Link
                       TextButton(
                         onPressed: () {
                           Navigator.of(
@@ -174,9 +184,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: TextStyle(color: Colors.grey[700]),
                         ),
                       ),
+
                       SizedBox(
                         height: MediaQuery.of(context).viewInsets.bottom,
                       ),
+
+                      // --- GOOGLE BUTTON (Fixed Colors) ---
                       OutlinedButton(
                         style: OutlinedButton.styleFrom(
                           backgroundColor: Colors.white,
@@ -185,20 +198,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             horizontal: 24,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              40,
-                            ), // Standard Google rounded corners
+                            borderRadius: BorderRadius.circular(40),
                           ),
-                          side: const BorderSide(
-                            color: Colors.grey,
-                          ), // Light border
+                          // Use the Pink color for border
+                          side: BorderSide(color: _colorPink),
                         ),
                         onPressed: () {
                           // Empty function
                         },
                         child: Row(
-                          mainAxisSize:
-                              MainAxisSize.min, // Shrinks Row to content size
+                          mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Image.network(
@@ -206,13 +215,12 @@ class _LoginScreenState extends State<LoginScreen> {
                               height: 24,
                               width: 24,
                             ),
-                            const SizedBox(
-                              width: 12,
-                            ), // Spacing between logo and text
-                            const Text(
+                            const SizedBox(width: 12),
+                            Text(
                               'Sign in with Google',
                               style: TextStyle(
-                                color: Colors.black87,
+                                // Use Pink color for text
+                                color: _colorPink,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -227,6 +235,91 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+
+  // Extracted Drawer Logic for cleanliness
+  Widget _buildBackendDrawer(BuildContext context) {
+    return Drawer(
+      backgroundColor: Colors.white,
+      child: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              color: Colors.grey[100],
+              child: Row(
+                children: [
+                  Icon(Icons.developer_mode, color: _colorOrange),
+                  const SizedBox(width: 10),
+                  const Text(
+                    "Dev Menu",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Set Backend URL'),
+              onTap: () async {
+                Navigator.of(context).pop(); // Close drawer
+                _showUrlDialog(context);
+              },
+            ),
+            const Spacer(),
+            ListTile(
+              leading: const Icon(Icons.close),
+              title: const Text('Close Menu'),
+              onTap: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showUrlDialog(BuildContext context) async {
+    final urlController = TextEditingController();
+
+    // Load existing URL first so user can see it
+    String? currentUrl = await BackendRepository.getUrl();
+    if (currentUrl != null) {
+      urlController.text = currentUrl;
+    }
+
+    await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Set Backend URL'),
+        content: TextField(
+          controller: urlController,
+          decoration: const InputDecoration(
+            hintText: 'https://api.example.com',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: _colorPink),
+            onPressed: () async {
+              await BackendRepository.setUrl(urlController.text);
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('URL Saved: ${urlController.text}'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            },
+            child: const Text('Save', style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }

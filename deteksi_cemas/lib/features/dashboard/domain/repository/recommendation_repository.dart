@@ -1,14 +1,13 @@
 import 'dart:convert';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http; // Make sure you import http
+import 'package:deteksi_cemas/features/onboarding/domain/repository/backend_repository.dart';
 
 class RecommendationRepository {
-  final String _baseUrl = dotenv.env['BACKEND_URL'] ?? 'http://localhost:8000';
-
   // Change return type to a more specific Map<String, dynamic>
   Future<Map<String, dynamic>> fetchRecommendations() async {
-    final urlActivity = Uri.parse('$_baseUrl/api/recommendations/activities');
-    final urlFoods = Uri.parse('$_baseUrl/api/recommendations/foods');
+    final String apiurl = await BackendRepository.getBackendUrl();
+    final urlActivity = Uri.parse('$apiurl/api/recommendations/activities');
+    final urlFoods = Uri.parse('$apiurl/api/recommendations/foods');
 
     // Fetch both in parallel for performance
     final results = await Future.wait([

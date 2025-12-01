@@ -1,16 +1,16 @@
 import 'package:deteksi_cemas/features/dashboard/domain/services/token_service.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:deteksi_cemas/features/onboarding/domain/repository/backend_repository.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class UserRepository {
   // Add your repository methods and properties here
-  final String _baseUrl = dotenv.env['BACKEND_URL'] ?? 'http://localhost:8000';
   final tokenService = TokenStorageService();
 
   // Get user history
   Future<List<dynamic>> fetchUsersSurveyHistory() async {
-    final url = Uri.parse('$_baseUrl/api/user/history');
+    final String apiurl = await BackendRepository.getBackendUrl();
+    final url = Uri.parse('$apiurl/api/user/history');
     final token = await tokenService.readToken();
     if (token == null) {
       throw Exception('Authorization token not found.');

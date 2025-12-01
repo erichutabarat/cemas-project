@@ -1,14 +1,14 @@
 import 'dart:convert';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:deteksi_cemas/features/onboarding/domain/repository/backend_repository.dart';
 import 'package:http/http.dart' as http;
 
 class AuthRepository {
-  final String _apiUrl = dotenv.env['BACKEND_URL'] ?? "http://localhost:8080";
   final String _loginEndpoint = "/api/auth/login";
   // Fungsi yang memanggil API Login
   Future<List<String>> loginUser(String email, String password) async {
+    final String apiUrl = await BackendRepository.getBackendUrl();
     final response = await http.post(
-      Uri.parse(_apiUrl + _loginEndpoint),
+      Uri.parse(apiUrl + _loginEndpoint),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
