@@ -82,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: blueContainerHeight,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFF8E6AD8), Color(0xFF6AD8E0)],
+                    colors: [Color(0xFFff0f7b), Color(0xFFf89b29)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -150,7 +150,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(30),
                                   ),
-                                  backgroundColor: Color(0xFF8E6AD8),
+                                  backgroundColor: Color(0xFFff0f7b),
                                   foregroundColor: Colors.white,
                                 ),
                                 child: Text(
