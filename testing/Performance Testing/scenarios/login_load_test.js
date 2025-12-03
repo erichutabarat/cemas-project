@@ -6,7 +6,9 @@ import { login } from '../lib/auth_login.js';
 export const options = {
     // A standard load test profile
     stages: [
-        { duration: '1m', target: 20 }
+        { duration: '2m', target: 500 }, // Spend 2 minutes slowly ramping up to 500 users
+        { duration: '3m', target: 500 }, // Stay at 500 users for 3 minutes
+        { duration: '1m', target: 0 },   // Ramp down
     ],
 
     // Pass/Fail criteria
