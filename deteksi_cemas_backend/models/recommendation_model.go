@@ -18,7 +18,7 @@ type RecommendationFood struct{
 	AnxietyLevel string `json:"anxiety_level"`
 }
 
-type UploadActivityRequest struct {
+type UploadActivityRequest struct {	
 	// Text Fields: Bind the form values
     Name         string `form:"name" binding:"required"`
     Description  string `form:"description" binding:"required"`

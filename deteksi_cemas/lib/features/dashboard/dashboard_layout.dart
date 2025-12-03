@@ -72,7 +72,7 @@ class _DashboardLayoutState extends State<DashboardLayout>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
+    // TODO: Fix user name on home screen
     // Check if the userName has NOT been set yet (to avoid reading arguments multiple times)
     if (_userName.isEmpty || _userName == 'Pengguna') {
       // Access the arguments from the route settings
