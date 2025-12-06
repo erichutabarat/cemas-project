@@ -8,12 +8,19 @@ import 'package:flutter/services.dart';
 
 class HomeScreen extends StatefulWidget {
   // Declare the controller as nullable
+
+  final void Function(int)? goToPage;
   final ScrollController? controller;
   final String name;
 
   // Make the parameter nullable (ScrollController?) in the constructor
   // You should also remove 'required' unless you enforce it elsewhere.
-  const HomeScreen({super.key, this.controller, required this.name});
+  const HomeScreen({
+    super.key,
+    this.controller,
+    required this.name,
+    required this.goToPage,
+  });
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -177,7 +184,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: Icons.auto_graph_rounded,
                     label: "Heartbeat Analyze",
                     color: Colors.red.shade300,
-                    onTap: () {},
+                    onTap: () {
+                      if (widget.goToPage != null) {
+                        widget.goToPage!(2); // Navigate to RecordScreen
+                      }
+                    },
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -186,7 +197,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: Icons.assignment_rounded,
                     label: "Anxiety Survey (HARS)",
                     color: Colors.red.shade300,
-                    onTap: () {},
+                    onTap: () {
+                      if (widget.goToPage != null) {
+                        widget.goToPage!(3); // Navigate to HistoryScreen
+                      }
+                    },
                   ),
                 ),
               ],
@@ -199,7 +214,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: Icons.history_rounded,
                     label: "User History",
                     color: Colors.red.shade300,
-                    onTap: () {},
+                    onTap: () {
+                      if (widget.goToPage != null) {
+                        widget.goToPage!(1); // Navigate to HistoryScreen
+                      }
+                    },
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -208,7 +227,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: Icons.today,
                     label: "Today Activity Planner",
                     color: Colors.red.shade300,
-                    onTap: () {},
+                    onTap: () {
+                      // TODO: Implement navigation to Activity Planner Screen
+                    },
                   ),
                 ),
               ],

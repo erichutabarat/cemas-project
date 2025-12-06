@@ -27,7 +27,11 @@ class _DashboardLayoutState extends State<DashboardLayout>
   double _previousScrollOffset = 0.0;
 
   List<Widget Function(ScrollController? controller)> get _pageBuilders => [
-    (controller) => HomeScreen(controller: controller, name: _userName),
+    (controller) => HomeScreen(
+      controller: controller,
+      name: _userName,
+      goToPage: goToPages,
+    ),
     (controller) => HistoryScreen(controller: controller),
     (controller) =>
         RecordScreen(controller: controller, backtohome: backToHomescreen),
@@ -286,6 +290,12 @@ class _DashboardLayoutState extends State<DashboardLayout>
   void backToHomescreen() {
     setState(() {
       _currentPage = 0;
+    });
+  }
+
+  void goToPages(int pageIndex) {
+    setState(() {
+      _currentPage = pageIndex;
     });
   }
 }
