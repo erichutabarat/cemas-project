@@ -3,7 +3,9 @@ package main
 import (
 	"log"
 	"os"
+    "time"
 	"github.com/gin-gonic/gin"
+    "github.com/gin-contrib/cors"
 	"deteksi_cemas_backend/config"
 	"deteksi_cemas_backend/migrations"
 	"deteksi_cemas_backend/models"
@@ -49,6 +51,14 @@ func main() {
     }
     // -----------------------------------------------------------
 
+    r.Use(cors.New(cors.Config{
+        AllowOrigins:     []string{"*"}, // Untuk development, buka semua
+        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+        ExposeHeaders:    []string{"Content-Length"},
+        AllowCredentials: true,
+        MaxAge: 12 * time.Hour,
+    }))
     // 2.5. Serve static files
     r.Static("/uploads", "./uploads")
 
