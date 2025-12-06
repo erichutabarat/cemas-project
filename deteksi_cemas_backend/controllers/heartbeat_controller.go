@@ -65,18 +65,26 @@ func (hc *HeartbeatController) Analyze(c *gin.Context) {
         return
     }
 
-    // ==== Step 1: Ambil latest inspection ====
-    var inspection models.Inspection
-    if err := hc.DB.Where("user_id = ?", userID).
-        Order("created_at DESC").
-        First(&inspection).Error; err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "No inspection found"})
+    // ===== Step 1: Read request body =====
+    var req struct {
+        InspectionID uint `json:"inspection_id"`
+    }
+
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
         return
     }
 
-    // ==== Step 2: Kirim audio ke ML server ====
-    // Dummy contoh, nanti tinggal call HTTP ke Python server
-    // misal http.Post("http://ml-server/analyze", audioUrl)
+    // ===== Step 2: Find inspection by ID + user =====
+    var inspection models.Inspection
+    if err := hc.DB.Where("id = ? AND user_id = ?", req.InspectionID, userID).
+        First(&inspection).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Inspection not found for this user"})
+        return
+    }
+
+    // ===== Step 3: Call ML server here (example dummy data) =====
+    // TODO: Integrate with actual ML server to get analysis results
     result := models.Result{
         InspectionID: inspection.ID,
         AnxietyScore: 40.5,
@@ -86,15 +94,25 @@ func (hc *HeartbeatController) Analyze(c *gin.Context) {
         Confidence:   0.89,
     }
 
-    // ==== Step 3: Simpan hasil ke DB ====
+    // ===== Step 4: Save result =====
     if err := hc.DB.Create(&result).Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save result"})
         return
     }
 
-    // ==== Step 4: return ke user ====
+    // ===== Step 5: Update inspection.Checked → true =====
+    inspection.Checked = true
+
+    if err := hc.DB.Save(&inspection).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update inspection status"})
+        return
+    }
+
+    // ===== Step 6: Final response =====
     c.JSON(http.StatusOK, gin.H{
         "message": "Analysis completed",
         "result":  result,
+        "inspection": inspection,
     })
 }
+
