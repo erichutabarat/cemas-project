@@ -8,17 +8,14 @@ import (
 )
 
 // SetupAssessmentRoutes initializes and registers all assessment endpoints.
-func SetupAssessmentRoutes(router *gin.Engine, db *gorm.DB){
-	// Create a new controller instance, passing the database connection (Dependency Injection)
+func SetupAssessmentRoutes(router *gin.Engine, db *gorm.DB) {
 	assessmentController := controllers.NewAssessmentController(db)
-	
-	// Group routes under /api/assessment
+
 	assessment := router.Group("/api/assessment")
-	assessment.Use(middlewares.AuthMiddleware())
-	{
-		// POST /api/assessment/question
-		assessment.GET("/questions", assessmentController.GetQuestions)
-		// POST /api/assessment/submit
-		assessment.POST("/submit", assessmentController.SubmitAssessment)
-	}
+
+	// Route tanpa middleware
+	assessment.GET("/questions", assessmentController.GetQuestions)
+
+	// Route dengan middleware
+	assessment.POST("/submit", middlewares.AuthMiddleware(), assessmentController.SubmitAssessment)
 }

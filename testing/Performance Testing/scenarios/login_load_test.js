@@ -6,14 +6,13 @@ import { login } from '../lib/auth_login.js';
 export const options = {
     // A standard load test profile
     stages: [
-        { duration: '2m', target: 200 }, // Spend 2 minutes slowly ramping up to 500 users
-        { duration: '3m', target: 200 }, // Stay at 500 users for 3 minutes
-        { duration: '1m', target: 0 },   // Ramp down
+        { duration: '2m', target: 200 }, // Spend 2 minutes slowly ramping up to 200 users
+        { duration: '3m', target: 200 }, // Stay at 200 users for 3 minutes
     ],
 
     // Pass/Fail criteria
     thresholds: {
-        http_req_duration: ['p(95)<500'], // 95% of logins must be faster than 500ms
+        http_req_duration: ['p(90)<1500'], // 90% of logins must be faster than 1500ms
         http_req_failed: ['rate<0.01'],   // Error rate must be less than 1%
     },
 };

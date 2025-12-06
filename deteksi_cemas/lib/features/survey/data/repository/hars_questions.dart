@@ -1,16 +1,15 @@
 // survey_repository.dart
 import 'dart:convert';
 import 'package:deteksi_cemas/features/dashboard/domain/services/token_service.dart';
+import 'package:deteksi_cemas/features/onboarding/domain/repository/backend_repository.dart';
 import 'package:deteksi_cemas/features/survey/data/models/assessment_results_models.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:deteksi_cemas/features/survey/data/models/assessment_questions_models.dart';
 
 class HarsQuestionsRepository {
-  final String _baseUrl = dotenv.env['BACKEND_URL'] ?? 'http://localhost:8000';
-
   Future<List<AssessmentQuestion>> fetchHarsQuestions() async {
+    final String apiUrl = await BackendRepository.getBackendUrl();
     final tokenService = TokenStorageService();
     String? token = await tokenService.readToken();
     if (token == null) {
@@ -18,7 +17,7 @@ class HarsQuestionsRepository {
     }
     final headers = {'Authorization': 'Bearer $token'};
 
-    final url = Uri.parse('$_baseUrl/api/assessment/questions');
+    final url = Uri.parse('$apiUrl/api/assessment/questions');
 
     // IMPORTANT: If this route is protected, you must include the JWT token in the headers!
     final response = await http.get(url, headers: headers);
@@ -41,6 +40,7 @@ class HarsQuestionsRepository {
   }
 
   Future<bool> fetchHarsSubmit(AssessmentResult result) async {
+    final String apiUrl = await BackendRepository.getBackendUrl();
     final tokenService = TokenStorageService();
     String? token = await tokenService.readToken();
 
@@ -48,7 +48,7 @@ class HarsQuestionsRepository {
       throw Exception('Authorization token not found.');
     }
 
-    final url = Uri.parse('$_baseUrl/api/assessment/submit');
+    final url = Uri.parse('$apiUrl/api/assessment/submit');
 
     // 1. Define required headers: Content-Type and Authorization
     final headers = {

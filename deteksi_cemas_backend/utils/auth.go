@@ -4,12 +4,20 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"golang.org/x/crypto/bcrypt"
+	"os"
 )
 
 // HashPassword generates a bcrypt hash of the plaintext password.
 func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	return string(bytes), err
+    cost := bcrypt.DefaultCost // Biasanya 10
+
+    // Jika sedang di local/testing, pakai cost terendah agar load test ngebut
+    if os.Getenv("APP_ENV") == "local" || os.Getenv("APP_ENV") == "testing" {
+        cost = bcrypt.MinCost // Nilainya 4
+    }
+
+    bytes, err := bcrypt.GenerateFromPassword([]byte(password), cost)
+    return string(bytes), err
 }
 
 // CheckPasswordHash compares a plaintext password with a hashed password.

@@ -95,6 +95,9 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               HeaderCard(name: widget.name),
               SizedBox(height: 20),
+              quickMenu(context),
+              SizedBox(height: 20),
+              // --- Search Bar ---
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextField(
@@ -179,6 +182,129 @@ class _HomeScreenState extends State<HomeScreen> {
         // Pass the ArticleModel instance directly to the widget
         return ArticleCardWidget(article: articles[index]);
       },
+    );
+  }
+
+  Widget quickMenu(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(18.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 20,
+              spreadRadius: -5,
+              offset: Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Quick Menu",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // GRID STYLE
+            Row(
+              children: [
+                Expanded(
+                  child: _quickItem(
+                    icon: Icons.auto_graph_rounded,
+                    label: "Heartbeat Analyze",
+                    color: Colors.red.shade300,
+                    onTap: () {},
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _quickItem(
+                    icon: Icons.assignment_rounded,
+                    label: "Anxiety Survey (HARS)",
+                    color: Colors.red.shade300,
+                    onTap: () {},
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: _quickItem(
+                    icon: Icons.history_rounded,
+                    label: "User History",
+                    color: Colors.red.shade300,
+                    onTap: () {},
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _quickItem(
+                    icon: Icons.today,
+                    label: "Today Activity Planner",
+                    color: Colors.red.shade300,
+                    onTap: () {},
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _quickItem({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, size: 28, color: color),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
