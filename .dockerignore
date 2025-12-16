@@ -1,0 +1,6 @@
+# Exclude your local testing folders
+testing_results
+testing
+.git
+.gitignore
+*.env

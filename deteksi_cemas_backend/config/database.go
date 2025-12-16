@@ -1,6 +1,7 @@
 package config
 
 import (
+    "database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -16,48 +17,67 @@ import (
 // InitDB initializes the MySQL connection and performs auto-migration.
 // It returns the gorm.DB instance.
 func InitDB(modelsToMigrate ...interface{}) *gorm.DB {
-    err := godotenv.Load()
-    if err != nil {
-        log.Println("Warning: .env file not found, using system environment variables")
+    _ = godotenv.Load()
+
+    dsn := fmt.Sprintf(
+        "%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+        os.Getenv("DB_USER"),
+        os.Getenv("DB_PASSWORD"),
+        os.Getenv("DB_HOST"),
+        os.Getenv("DB_PORT"),
+        os.Getenv("DB_NAME"),
+    )
+
+    var (
+        db    *gorm.DB
+        sqlDB *sql.DB
+        err   error
+    )
+
+    maxRetries := 10
+    retryDelay := 2 * time.Second
+
+    for i := 1; i <= maxRetries; i++ {
+        log.Printf("Connecting to database... (%d/%d)", i, maxRetries)
+
+        db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+            Logger: logger.Default.LogMode(logger.Silent),
+        })
+        if err != nil {
+            log.Printf("GORM open failed: %v", err)
+            time.Sleep(retryDelay)
+            continue
+        }
+
+        sqlDB, err = db.DB()
+        if err != nil {
+            log.Printf("sql.DB failed: %v", err)
+            time.Sleep(retryDelay)
+            continue
+        }
+
+        err = sqlDB.Ping() // ✅ NO pingErr
+        if err == nil {
+            log.Println("Database connected successfully")
+            break
+        }
+
+        log.Printf("Database not ready: %v", err)
+        time.Sleep(retryDelay)
     }
 
-    dsn := os.Getenv("DB_DSN")
-
-    // 1. Buka koneksi GORM
-    db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-        // Opsional: Matikan log SQL saat load test agar tidak membebani I/O console
-        Logger: logger.Default.LogMode(logger.Silent), 
-    })
     if err != nil {
-        log.Fatalf("Failed to connect to database: %v", err)
+        log.Fatalf("Failed to connect to database after %d attempts: %v", maxRetries, err)
     }
 
-    // ---------------------------------------------------------
-    // 2. OPTIMASI CONNECTION POOL (BAGIAN PENTING)
-    // ---------------------------------------------------------
-    sqlDB, err := db.DB() // Ambil objek database generic (database/sql)
-    if err != nil {
-        log.Fatalf("Failed to get generic database object: %v", err)
-    }
-
-    // SetMaxIdleConns: Jumlah koneksi yang "standby" menunggu dipakai.
-    // Jangan biarkan default (2). Set angka ini sama atau mendekati MaxOpen.
+    // Connection pool
     sqlDB.SetMaxIdleConns(50)
-
-    // SetMaxOpenConns: Jumlah maksimal koneksi yang boleh dibuka ke MySQL.
-    // Mencegah aplikasi membuka ribuan koneksi yang bisa mematikan database.
     sqlDB.SetMaxOpenConns(100)
-
-    // SetConnMaxLifetime: Seberapa lama koneksi boleh hidup sebelum didaur ulang.
-    // Ini penting agar koneksi tidak "stale" (basi).
     sqlDB.SetConnMaxLifetime(1 * time.Hour)
-    // ---------------------------------------------------------
 
-    // 3. Auto-Migrate
     if err := db.AutoMigrate(modelsToMigrate...); err != nil {
-        log.Fatalf("Failed to migrate database: %v", err)
+        log.Fatalf("Migration failed: %v", err)
     }
 
-    fmt.Println("Database connection established with optimized pool settings!")
     return db
 }

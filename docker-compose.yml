@@ -1,0 +1,62 @@
+services:
+  # 1. GO BACKEND SERVICE
+  backend:
+    # Build the image from the Dockerfile in the 'deteksi_cemas_backend' directory
+    build:
+      context: ./deteksi_cemas_backend
+      dockerfile: Dockerfile
+    # Map the container's port (e.g., 8080) to your laptop's port (e.g., 8080)
+    ports:
+      - "8080:8080"
+    # Ensure the database and MQTT broker are ready before starting the backend
+    depends_on:
+      - mysql
+      - mosquitto
+    # Environment variables for the Go app to connect to the services
+    environment:
+      # Database connection
+      DB_HOST: mysql
+      DB_USER: cemas_admin
+      DB_PASSWORD: Cemas_admin3532
+      DB_NAME: cemas_db
+      DB_PORT: 3306
+      # MQTT connection
+      MQTT_HOST: mosquitto
+      MQTT_PORT: 1883
+    # Optional: mount your code for easy development (uncomment to use)
+    # volumes:
+    #   - ./deteksi_cemas_backend:/app
+
+  # 2. MYSQL DATABASE SERVICE
+  mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      # Set up the initial user/database
+      MYSQL_ROOT_PASSWORD: cemas_admin
+      MYSQL_DATABASE: cemas_db
+      MYSQL_USER: cemas_admin
+      MYSQL_PASSWORD: Cemas_admin3532
+    ports:
+      # Optional: Map the database port for local access (e.g., for DBeaver/SQL client)
+      - "3306:3306"
+    # Persist the database data
+    volumes:
+      - db_data:/var/lib/mysql
+
+  # 3. MOSQUITTO (MQTT) SERVICE
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    restart: always
+    ports:
+      # Map the default MQTT port
+      - "1883:1883"
+    # Optional: Map a volume for configuration if you need custom security/listeners
+    # volumes:
+    #   - ./mosquitto/config:/mosquitto/config
+    #   - ./mosquitto/data:/mosquitto/data
+    #   - ./mosquitto/log:/mosquitto/log
+
+# Define the persistent volume for MySQL data
+volumes:
+  db_data:
