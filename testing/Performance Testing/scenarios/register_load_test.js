@@ -3,25 +3,22 @@ import { SharedArray } from "k6/data";
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
-// ===== 1. LOAD CSV REGISTER_DATA (EMAIL & PASSWORD UNTUK LOGIN) =====
-const loginData = new SharedArray("login data", function () {
+const registerData = new SharedArray("user data", function () {
     const parsed = papaparse.parse(open('./register_data.csv'), {
         header: true,
         skipEmptyLines: true,
     }).data;
 
-    return Object.freeze(parsed);
+    return Object.freeze(parsed);  // IMPORTANT FIX
 });
 
-// ===== 2. LOGIN URL =====
-const LOGIN_URL = 'http://localhost:8080/api/auth/login';
+const REGISTER_URL = 'http://localhost:8080/api/auth/register';
 
-// ===== 3. OPTIONS =====
 export const options = {
     scenarios: {
         load_test: {
             executor: "constant-arrival-rate",
-            rate: 100,              // 100 Login Request / second
+            rate: 100,              // 100 requests per second
             timeUnit: "1s",
             duration: "2m",
             preAllocatedVUs: 50,
@@ -29,29 +26,31 @@ export const options = {
         }
     },
     thresholds: {
-        http_req_duration: ['p(95)<1000'],   // 95% < 1s
-        http_req_failed: ['rate<0.001'],     // Error < 0.1%
-        checks: ['rate>0.99'],               // 99% checks success
+        http_req_duration: ['p(95)<1000'],
+        http_req_failed: ['rate<0.001'],
+        checks: ['rate>0.99'],
     },
 };
 
-// ===== 4. LOGIN TEST =====
 export default function () {
-    const idx = (__ITER % loginData.length);
-    const user = loginData[idx];
+    const idx = (__ITER % registerData.length);
+    const user = registerData[idx];
 
     const payload = JSON.stringify({
         email: user.email,
         password: user.password,
+        name: user.name,
+        birthdate: user.birthdate,
+        gender: user.gender,
     });
 
-    const res = http.post(LOGIN_URL, payload, {
+    const res = http.post(REGISTER_URL, payload, {
         headers: { 'Content-Type': 'application/json' },
     });
 
     check(res, {
-        'Login success (200)': (r) => r.status === 200,
+        'Status OK or 409': (r) => r.status === 200 || r.status === 201 || r.status === 409,
     });
 
-    sleep(1); // Tirukan perilaku real user
+    sleep(1); // Slight delay to mimic real user behavior
 }

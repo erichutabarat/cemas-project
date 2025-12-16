@@ -113,13 +113,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     physics: const ClampingScrollPhysics(),
                     padding: const EdgeInsets.all(24.0),
                     children: [
-                      const Center(
-                        child: Text(
-                          'Login Your Account',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
+                      Center(
+                        // TODO: WEB END DRAWER
+                        child: GestureDetector(
+                          onTap: () {
+                            Scaffold.of(context).openEndDrawer();
+                          },
+                          child: const Text(
+                            'Login Your Account',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
                           ),
                         ),
                       ),

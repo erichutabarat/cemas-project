@@ -35,4 +35,5 @@ flutter:
     - "assets/images/jogging.jpg"
     - "assets/images/food.jpg"
     - "assets/animation/heartbeat_animation.json"
+    - "assets/audio/heartbeat_sample.wav"
     - .env

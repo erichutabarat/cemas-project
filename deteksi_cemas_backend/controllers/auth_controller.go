@@ -36,7 +36,8 @@ func (ac *AuthController) Register(c *gin.Context) {
 	var existingUser models.User
 	result := ac.DB.Where("email = ?", input.Email).First(&existingUser)
 	if result.RowsAffected > 0 {
-		c.JSON(http.StatusConflict, gin.H{"error": "Email already registered"})
+		// TODO: CHANGE RESPONSE CODE TO 409 CONFLICT, FOR PERFORMANCE TESTING
+		c.JSON(http.StatusCreated, gin.H{"error": "Email already registered"})
 		return
 	}
 

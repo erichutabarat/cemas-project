@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:deteksi_cemas/features/dashboard/domain/repository/heartbeat_repository.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/heartbeat_animation.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,8 @@ class RecordScreen extends StatefulWidget {
 
 class _RecordScreenState extends State<RecordScreen> {
   // CHANGED: Made non-final so we can update it from the bottom sheet
+  final HeartbeatRepository _heartbeatRepository = HeartbeatRepository();
+
   bool _deviceConnected = false;
   late RecordStatus _recordStatus = RecordStatus.idle;
   int? _currentDeviceId; // Changed to nullable int for initial state
@@ -25,6 +28,10 @@ class _RecordScreenState extends State<RecordScreen> {
   Timer? _timer;
   int _secondsElapsed = 0; // Total seconds since the counter started
   bool _isRunning = false; // Flag to indicate if the timer is currently running
+
+  // Send and analyze heartbeat data
+  String analyzeState = "idle";
+  int? inspectionId;
 
   final GlobalKey<HeartbeatAnimationState> _heartbeatKey =
       GlobalKey<HeartbeatAnimationState>();
@@ -385,8 +392,7 @@ class _RecordScreenState extends State<RecordScreen> {
             _recordStatus = RecordStatus.sent;
             _resetStopwatch();
           });
-
-          //TODO: call machine learning here
+          showFullModal(context);
         }
         state.toggleAnimation();
       } else {
@@ -467,6 +473,49 @@ class _RecordScreenState extends State<RecordScreen> {
         );
       },
     );
+  }
+
+  void showFullModal(BuildContext context) {
+    late String analyzeState = "recorded";
+    if (analyzeState == "recorded") {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Recording Complete'),
+            content: const Text(
+              'Your heartbeat audio has been saved successfully.',
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Analyze Now'),
+                onPressed: () {
+                  // use sample audio file for testing upload
+                  _heartbeatRepository
+                      .uploadHeartbeatData("assets/audio/heartbeat_sample.wav")
+                      .then((response) {
+                        if (kDebugMode) {
+                          print('Upload successful: ${response.message}');
+                        }
+                        if (kDebugMode) {
+                          print('Inspection id: ${response.inspectionId}');
+                        }
+                        analyzeState = "sent";
+                      })
+                      .catchError((error) {
+                        if (kDebugMode) {
+                          print('Upload failed: $error');
+                        }
+                      });
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } else if (analyzeState == "sent") {
+      // use websocket to check analysis result
+    }
   }
 }
 
