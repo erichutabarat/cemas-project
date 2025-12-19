@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:deteksi_cemas/features/auth/domain/repository/auth_repository.dart';
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_bloc.dart';
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_event.dart';
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_state.dart';
@@ -28,10 +29,23 @@ class _LoginScreenState extends State<LoginScreen> {
   final Color _colorOrange = const Color(0xFFf89b29);
 
   @override
+  void initState() {
+    super.initState();
+    loadRememberedEmail();
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  void loadRememberedEmail() async {
+    String? rememberedEmail = await AuthRepository.getRememberedEmail();
+    if (rememberedEmail != null) {
+      _emailController.text = rememberedEmail;
+    }
   }
 
   void _onLoginPressed() {
@@ -59,6 +73,8 @@ class _LoginScreenState extends State<LoginScreen> {
           if (state is AuthSuccess) {
             await tokenStorage.saveToken(state.token);
             String userName = state.name;
+            String rememberEmail = _emailController.text;
+            await AuthRepository.rememberEmail(rememberEmail);
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Login Berhasil!'),
