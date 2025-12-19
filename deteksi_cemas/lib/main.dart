@@ -3,6 +3,7 @@ import 'package:deteksi_cemas/features/auth/presentation/screens/login_screen.da
 import 'package:deteksi_cemas/features/auth/presentation/screens/register_screen.dart';
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_bloc.dart';
 import 'package:deteksi_cemas/features/dashboard/dashboard_layout.dart';
+import 'package:deteksi_cemas/features/loading/presentation/screens/loading_screen.dart';
 import 'package:deteksi_cemas/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:deteksi_cemas/features/survey/presentation/screens/hars_result_screen.dart';
 import 'package:deteksi_cemas/features/survey/presentation/screens/hars_survey_screen.dart';
@@ -42,8 +43,9 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       title: "Deteksi Cemas",
       debugShowCheckedModeBanner: false,
-      initialRoute: "/onboarding",
+      initialRoute: "/loading",
       routes: {
+        "/loading": (context) => const LoadingScreen(),
         "/onboarding": (context) => OnboardingScreen(),
         "/register": (context) => RegisterScreen(),
         "/login": (context) => LoginScreen(),

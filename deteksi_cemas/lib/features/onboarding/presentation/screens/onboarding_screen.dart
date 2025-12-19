@@ -1,4 +1,7 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:deteksi_cemas/features/onboarding/onboarding_controller.dart';
+import 'package:deteksi_cemas/features/onboarding/services/onboarding_services.dart';
 import 'package:flutter/material.dart';
 import '../../data/onboarding_items.dart';
 import '../widgets/onboarding_content.dart';
@@ -55,8 +58,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 // 1. Mengatur lebar tombol menjadi 70% dari lebar layar
                 width: MediaQuery.of(context).size.width * 0.7,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (controller.currentIndex == onboardingItems.length - 1) {
+                      await OnboardingService.setCompleted();
                       Navigator.pushReplacementNamed(context, "/login");
                     } else {
                       controller.nextPage();

@@ -8,7 +8,7 @@ class AuthRepository {
   Future<List<String>> loginUser(String email, String password) async {
     final String apiUrl = await BackendRepository.getBackendUrl();
     final response = await http.post(
-      Uri.parse(apiUrl + _loginEndpoint),
+      Uri.parse('$apiUrl$_loginEndpoint'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },

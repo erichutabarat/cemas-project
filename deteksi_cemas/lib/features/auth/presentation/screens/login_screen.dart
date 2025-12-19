@@ -114,7 +114,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.all(24.0),
                     children: [
                       Center(
-                        // TODO: WEB END DRAWER
                         child: GestureDetector(
                           onTap: () {
                             Scaffold.of(context).openEndDrawer();

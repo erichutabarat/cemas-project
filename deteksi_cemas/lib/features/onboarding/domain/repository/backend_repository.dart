@@ -17,14 +17,7 @@ class BackendRepository {
   }
 
   static Future<String> getBackendUrl() async {
-    final url = await getUrl();
     final String dotenvUrl = dotenv.env['BACKEND_URL'] ?? "";
-    if (url != null && url.isNotEmpty) {
-      return url;
-    } else if (dotenvUrl.isNotEmpty) {
-      return dotenvUrl;
-    } else {
-      return "http://192.168.1.46:8080";
-    }
+    return dotenvUrl;
   }
 }
