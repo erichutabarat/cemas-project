@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:deteksi_cemas/features/dashboard/data/models/article_model.dart';
 import 'package:deteksi_cemas/features/dashboard/domain/repository/recommendation_repository.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/article_card.dart';

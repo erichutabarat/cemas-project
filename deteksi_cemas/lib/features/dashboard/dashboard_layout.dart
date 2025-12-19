@@ -76,13 +76,12 @@ class _DashboardLayoutState extends State<DashboardLayout>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // TODO: Fix user name on home screen
     // Check if the userName has NOT been set yet (to avoid reading arguments multiple times)
-    if (_userName.isEmpty || _userName == 'Pengguna') {
+    if (_userName.isEmpty || _userName == 'USer') {
       // Access the arguments from the route settings
       final args = ModalRoute.of(context)!.settings.arguments;
       final Map<String, dynamic>? arguments = args as Map<String, dynamic>?;
-      final receivedUserName = arguments?['userName'] ?? 'Pengguna';
+      final receivedUserName = arguments?['userName'] ?? 'User';
 
       // Use setState to update _userName.
       // This is crucial: setState triggers the build method, which re-evaluates the _pageBuilders getter.

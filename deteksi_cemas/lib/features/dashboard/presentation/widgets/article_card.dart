@@ -54,7 +54,7 @@ class ArticleCardWidget extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 // Use Image.network to handle remote URL loading and error states
                 child: Image.network(
-                  'http://192.168.1.46:8080${article.imageUrl}',
+                  'https://erichutabarat.my.id${article.imageUrl}',
                   fit: BoxFit.cover,
 
                   // 🎯 The fix is here: using errorBuilder for fallback

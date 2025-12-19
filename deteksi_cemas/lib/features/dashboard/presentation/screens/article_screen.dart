@@ -261,6 +261,13 @@ class _ArticleScreenState extends State<ArticleScreen> {
                               ),
                             );
                           },
+                          onLongPress: () {
+                            // Optional: Handle long press for additional actions
+                            if (kDebugMode) {
+                              print('Long pressed on ID: $id');
+                            }
+                            _showDeleteDialog(index, id);
+                          },
                         ),
                       );
                     },
@@ -334,5 +341,35 @@ class _ArticleScreenState extends State<ArticleScreen> {
         ),
       ),
     );
+  }
+
+  void _showDeleteDialog(int index, int id) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Delete History'),
+          content: Text('Are you sure you want to delete record ID $id?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _deleteHistory(index, id);
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteHistory(int index, int id) async {
+    // TODO: Implement deletion logic here
   }
 }
