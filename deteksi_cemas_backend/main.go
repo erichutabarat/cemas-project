@@ -74,4 +74,6 @@ func main() {
     if err := r.Run("0.0.0.0:8080"); err != nil {
         log.Fatalf("Server failed to start: %v", err)
     }
+
+    // App run
 }
