@@ -53,3 +53,32 @@ func (ac *AssessmentController) SubmitAssessment(c *gin.Context){
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Assessment submitted successfully", "result": result})
 }
+
+func (ac *AssessmentController) DeleteResult(c *gin.Context) {
+    id := c.Param("id")
+	
+    userID, exists := c.Get("userID")
+    if !exists {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+        return
+    }
+
+    var result models.HarsResults
+    dbResult := ac.DB.Where("id = ? AND user_id = ?", id, userID).First(&result)
+    
+    if dbResult.Error != nil {
+        if dbResult.Error == gorm.ErrRecordNotFound {
+            c.JSON(http.StatusNotFound, gin.H{"error": "Result not found or you don't have permission"})
+        } else {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+        }
+        return
+    }
+
+    if err := ac.DB.Delete(&result).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete result"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "Assessment result deleted successfully"})
+}

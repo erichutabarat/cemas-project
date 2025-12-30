@@ -1,4 +1,6 @@
 .env
+.env.local
+
 # Ignore Go binaries
 deteksi_cemas_backend
 *.exe

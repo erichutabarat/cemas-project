@@ -9,13 +9,22 @@ import (
 
 // SetupAssessmentRoutes initializes and registers all assessment endpoints.
 func SetupAssessmentRoutes(router *gin.Engine, db *gorm.DB) {
-	assessmentController := controllers.NewAssessmentController(db)
+    assessmentController := controllers.NewAssessmentController(db)
 
-	assessment := router.Group("/api/assessment")
+    // Base group: /api/assessment
+    assessment := router.Group("/api/assessment")
+    {
+        // 1. Public Route: /api/assessment/questions
+        assessment.GET("/questions", assessmentController.GetQuestions)
 
-	// Route tanpa middleware
-	assessment.GET("/questions", assessmentController.GetQuestions)
-
-	// Route dengan middleware
-	assessment.POST("/submit", middlewares.AuthMiddleware(), assessmentController.SubmitAssessment)
+        // 2. All routes below this will use the AuthMiddleware
+        assessment.Use(middlewares.AuthMiddleware())
+        {
+            // Path: /api/assessment/submit
+            assessment.POST("/submit", assessmentController.SubmitAssessment)
+            
+            // Path: /api/assessment/result/:id
+            assessment.DELETE("/result/:id", assessmentController.DeleteResult)
+        }
+    }
 }
