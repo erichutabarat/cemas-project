@@ -370,6 +370,33 @@ class _ArticleScreenState extends State<ArticleScreen> {
   }
 
   void _deleteHistory(int index, int id) async {
-    // TODO: Implement deletion logic here
+    // 1. Show a loading indicator (optional but recommended)
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Deleting record...'),
+        duration: Duration(milliseconds: 500),
+      ),
+    );
+
+    try {
+      // 2. Perform the API deletion
+      await userRepository.deleteSurveyResultByID(id);
+
+      // 3. Refresh the FutureBuilder
+      setState(() {
+        // Re-assigning the future triggers the FutureBuilder to run again
+        userHistoryFuture = userRepository.fetchUsersSurveyHistory();
+      });
+
+      // 4. Success feedback
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Record deleted successfully')),
+      );
+    } catch (e) {
+      // 5. Error handling
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete: ${e.toString()}')),
+      );
+    }
   }
 }
