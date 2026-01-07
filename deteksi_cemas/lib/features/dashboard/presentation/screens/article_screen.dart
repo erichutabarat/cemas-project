@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:deteksi_cemas/features/dashboard/domain/repository/user_repository.dart';
 import 'package:deteksi_cemas/features/survey/data/models/assessment_results_models.dart';
 import 'package:deteksi_cemas/features/survey/data/repository/hars_questions.dart';
