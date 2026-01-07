@@ -7,6 +7,7 @@ class AuthRepository {
   static const String _keyLoggedIn = 'is_logged_in';
   static const String _keyEmail = 'remembered_email';
   final String _loginEndpoint = "/api/auth/login";
+  final String _registerEndpoint = "/api/auth/register";
   // Fungsi yang memanggil API Login
   Future<List<String>> loginUser(String email, String password) async {
     final String apiUrl = await BackendRepository.getBackendUrl();
@@ -33,6 +34,52 @@ class AuthRepository {
     } else {
       // Gagal karena error server lain
       throw Exception("Gagal login: Status ${response.statusCode}");
+    }
+  }
+
+  Future<Map<String, dynamic>> registerUser({
+    required String name,
+    required String email,
+    required String password,
+    required DateTime birthDate,
+    required String gender,
+  }) async {
+    final String apiUrl = await BackendRepository.getBackendUrl();
+    final String formattedDate =
+        "${birthDate.toIso8601String().split('.')[0]}Z";
+
+    final response = await http.post(
+      Uri.parse('$apiUrl$_registerEndpoint'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode({
+        'email': email,
+        'password': password,
+        'name': name,
+        'birthdate': formattedDate,
+        'gender': gender.toLowerCase(),
+      }),
+    );
+
+    final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      // Matches your success JSON: {"message": "...", "name": "...", "user_id": ...}
+      return responseData;
+      // Inside registerUser method in AuthRepository
+    } else {
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      String details = responseData['details'] ?? "";
+      String error = responseData['error'] ?? "";
+
+      // Check if the technical error is related to Password length
+      if (details.contains("Password") && details.contains("'min' tag")) {
+        throw Exception("password_too_short"); // Unique key for the Bloc
+      }
+
+      // Fallback to the generic error or details
+      throw Exception(details.isNotEmpty ? details : error);
     }
   }
 
