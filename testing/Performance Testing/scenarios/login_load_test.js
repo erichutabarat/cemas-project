@@ -14,14 +14,14 @@ const loginData = new SharedArray("login data", function () {
 });
 
 // ===== 2. LOGIN URL =====
-const LOGIN_URL = 'http://localhost:8080/api/auth/login';
+const LOGIN_URL = 'http://103.63.25.67:8080/api/auth/login';
 
 // ===== 3. OPTIONS =====
 export const options = {
     scenarios: {
         load_test: {
             executor: "constant-arrival-rate",
-            rate: 100,              // 100 Login Request / second
+            rate: 200,              // 200 Login Request / second
             timeUnit: "1s",
             duration: "2m",
             preAllocatedVUs: 50,

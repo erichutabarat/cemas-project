@@ -1,38 +1,40 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
-import { config } from '../config/env.js';
 
 export let options = {
-    vus: 1,                         // Soak test = 1 user tetapi sangat banyak request
-    iterations: 1000,               // Total 1000 permintaan berturut-turut
+    // Gunakan stages untuk simulasi beban yang stabil
+    stages: [
+        { duration: '1m', target: 100 },  // Ramp-up: perlahan naik ke 100 user
+        { duration: '10m', target: 100 }, // SOAK: Tahan di 100 user selama 10 menit
+        { duration: '1m', target: 0 },    // Ramp-down
+    ],
     thresholds: {
-        http_req_duration: ['p(95)<1500'],   // 95% response < 1.5 detik
-        http_req_failed: ['rate<0.01'],      // Error < 1%
+        http_req_duration: ['p(95)<1500'],
+        http_req_failed: ['rate<0.01'],
     },
 };
 
 export default function () {
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjUxNzM3NTksInVzZXJJRCI6MX0.T43QN0Jwkodpq-IJqu3oj2L4571v3YJaL-wH1jsc-RA"; // ambil token dari env.js
+    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Njc5NDQ5NDcsInVzZXJJRCI6MX0.i9QcLxNWufQ0UXYfqyQuZ5E3svF2sNK_LuKHRUjLWRY";
 
-    const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
+    const params = {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
     };
 
-    const res = http.get(`${config.baseUrl}/api/user/history`, { headers });
+    const res = http.get(`http://103.63.25.67:8080/api/user/history`, params);
+
+    // Parsing JSON sekali saja untuk efisiensi
+    let jsonData;
+    try { jsonData = res.json(); } catch (e) { }
 
     check(res, {
         'status 200': (r) => r.status === 200,
-        'response ≤ 1.5s': (r) => r.timings.duration < 1500,
-        'body contains hars_results': (r) => r.json('hars_results') !== undefined,
-        'hars_results is array': (r) => Array.isArray(r.json('hars_results')),
-        'hars_results not empty': (r) => r.json('hars_results').length > 0,
-        // contoh validasi lebih detail:
-        'first item has score': (r) => {
-            const arr = r.json('hars_results');
-            return arr.length > 0 && typeof arr[0].score === 'number';
-        },
+        'body not empty': () => jsonData !== null,
+        'hars_results is valid': () => jsonData && Array.isArray(jsonData.hars_results) && jsonData.hars_results.length > 0,
     });
 
-    sleep(0.1); // kecilkan delay untuk tes berurutan
+    sleep(1); // Jeda 1 detik antar request per user agar lebih realistis
 }

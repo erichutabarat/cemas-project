@@ -4,7 +4,7 @@ import { config } from '../config/env.js';
 
 export let options = {
     vus: 200,                       // 200 pengguna simultan
-    duration: '2m',                 // berjalan selama 2 menit
+    duration: '3m',                 // berjalan selama 3 menit
     thresholds: {
         http_req_duration: ['p(90)<1000'], // 90% response < 1 detik
         http_req_failed: ['rate<0.01'],    // error rate < 1%
@@ -14,8 +14,8 @@ export let options = {
 export default function () {
     // 🚀 Kirim kedua endpoint secara paralel
     const responses = http.batch([
-        ['GET', `${config.baseUrl}/api/recommendations/foods`],
-        ['GET', `${config.baseUrl}/api/recommendations/activities`],
+        ['GET', `http://103.63.25.67:8080/api/recommendations/foods`],
+        ['GET', `http://103.63.25.67:8080/api/recommendations/activities`],
     ]);
 
     // Validasi kedua response
