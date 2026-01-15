@@ -3,7 +3,7 @@ package controllers
 import (
 	"net/http"
 	"log"
-
+	"strings"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
@@ -138,6 +138,5 @@ func isDuplicateEntryError(err error) bool {
 
 // Low-level string check to avoid complex type assertions during load test
 func appendErrorCheck(err error, code string) bool {
-    import "strings" // Alternatively, just add "strings" to your imports at the top
     return strings.Contains(err.Error(), code)
 }
