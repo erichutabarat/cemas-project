@@ -15,7 +15,7 @@ COPY . .
 # Build the Go application
 # -o deteksi_cemas_backend: names the output binary
 # ./main.go: adjust this path to your main package (e.g., if your main is in 'cmd/server')
-RUN CGO_ENABLED=0 go build -o /deteksi_cemas_backend ./main.go
+RUN GOMAXPROCS=1 CGO_ENABLED=0 go build -o /deteksi_cemas_backend ./main.go
 
 # Stage 2: Create a minimal production image
 # Use a minimal, highly secure base image for the final container

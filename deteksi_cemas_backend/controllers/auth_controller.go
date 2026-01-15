@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"log"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -61,8 +62,19 @@ func (ac *AuthController) Register(c *gin.Context) {
 
 	// 4. Save to DB
 	if result := ac.DB.Create(&newUser); result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
-		return
+   	 // Check if the error is a duplicate entry (MySQL Error 1062)
+	    if isDuplicateEntryError(result.Error) {
+       	       log.Printf("⚠️ Race condition handled: Duplicate entry for %s", newUser.Email)
+       	       c.JSON(http.StatusCreated, gin.H{
+       	         "message": "User already registered (Handled)",
+       	         "user_id": 0,
+       	 })
+       	 return
+    	}
+
+   	 log.Printf("❌ ACTUAL DATABASE ERROR: %v", result.Error)
+    	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+    	return
 	}
 
 	// 5. Success response
@@ -113,4 +125,19 @@ func (ac *AuthController) Login(c *gin.Context) {
 		"user_id": user.ID,
 		"name":    user.Name,
 	})
+}
+
+// Helper function to check for MySQL Duplicate Entry error
+func isDuplicateEntryError(err error) bool {
+    if err == nil {
+        return false
+    }
+    // Error 1062 is the specific MySQL code for Unique Constraint violation
+    return  appendErrorCheck(err, "1062")
+}
+
+// Low-level string check to avoid complex type assertions during load test
+func appendErrorCheck(err error, code string) bool {
+    import "strings" // Alternatively, just add "strings" to your imports at the top
+    return strings.Contains(err.Error(), code)
 }

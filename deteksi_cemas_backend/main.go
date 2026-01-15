@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"os"
-    "time"
+        "time"
 	"github.com/gin-gonic/gin"
     "github.com/gin-contrib/cors"
 	"deteksi_cemas_backend/config"
@@ -29,12 +29,12 @@ func main() {
     // -----------------------------------------------------------
     // OPTIMASI PERFORMA LOAD TEST
     // -----------------------------------------------------------
-    
+    var r *gin.Engine // <--- Declare 'r' here first!
+
     // Respect the GIN_MODE env var set in Docker
     if os.Getenv("GIN_MODE") == "release" {
         gin.SetMode(gin.ReleaseMode)
-        r = gin.New()
-        r.Use(gin.Recovery()) 
+        r = gin.New() 
         log.Println("⚡ Running in High Performance Mode (Logger Disabled)")
     } else {
         // Standard development mode
@@ -43,7 +43,14 @@ func main() {
         log.Println("🛠️ Running in Debug Mode (Logger Enabled)")
     }
     // -----------------------------------------------------------
-
+    r.Use(gin.Recovery())
+    r.Use(func(c *gin.Context) {
+        c.Next()
+        if len(c.Errors) > 0 {
+            // Use log.Printf instead of fmt.Printf to ensure it hits Docker logs
+            log.Printf("❌ HANDLER ERROR: %s", c.Errors.String())
+        }
+    })
     r.Use(cors.New(cors.Config{
         AllowOrigins:     []string{"*"}, // Untuk development, buka semua
         AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},

@@ -41,8 +41,10 @@ func InitDB(modelsToMigrate ...interface{}) *gorm.DB {
         log.Printf("Connecting to database... (%d/%d)", i, maxRetries)
 
         db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
-            Logger: logger.Default.LogMode(logger.Silent),
-        })
+    	Logger: logger.Default.LogMode(logger.Silent),
+	    // ⚡ Add this line to improve performance during load tests
+	    SkipDefaultTransaction: true, 
+	})
         if err != nil {
             log.Printf("GORM open failed: %v", err)
             time.Sleep(retryDelay)
