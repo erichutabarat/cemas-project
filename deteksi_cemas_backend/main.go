@@ -29,25 +29,18 @@ func main() {
     // -----------------------------------------------------------
     // OPTIMASI PERFORMA LOAD TEST
     // -----------------------------------------------------------
-    // Cek environment variable
-    if os.Getenv("APP_ENV") == "local" {
-        // 1. Set mode ke Release (mematikan log debug internal Gin)
-        gin.SetMode(gin.ReleaseMode)
-        log.Println("⚡ Running in High Performance Mode (Logs Disabled)")
-    }
     
-    var r *gin.Engine
-
-    if os.Getenv("APP_ENV") == "local" {
-        // 2. Gunakan gin.New() bukannya gin.Default()
-        // gin.Default() = Logger + Recovery (Logger itu lambat!)
-        // gin.New()     = Kosong (Sangat cepat)
+    // Respect the GIN_MODE env var set in Docker
+    if os.Getenv("GIN_MODE") == "release" {
+        gin.SetMode(gin.ReleaseMode)
         r = gin.New()
-        r.Use(gin.Recovery()) // Tetap pakai Recovery agar tidak crash jika panic
-        // Kita TIDAK pasang r.Use(gin.Logger()) agar terminal bersih
+        r.Use(gin.Recovery()) 
+        log.Println("⚡ Running in High Performance Mode (Logger Disabled)")
     } else {
-        // Mode development biasa (pakai log)
-        r = gin.Default()
+        // Standard development mode
+        gin.SetMode(gin.DebugMode)
+        r = gin.Default() 
+        log.Println("🛠️ Running in Debug Mode (Logger Enabled)")
     }
     // -----------------------------------------------------------
 

@@ -10,3 +10,4 @@ deteksi_cemas_backend
 /build/
 bin/
 dist/
+deploy.md

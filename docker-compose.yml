@@ -6,14 +6,19 @@ services:
       context: ./deteksi_cemas_backend
       dockerfile: Dockerfile
     # Map the container's port (e.g., 8080) to your laptop's port (e.g., 8080)
+    restart: always
     ports:
       - "8080:8080"
+    # Uploads volumes
+    volumes:
+      - ./deteksi_cemas_backend/uploads:/deteksi_cemas_backend/uploads
     # Ensure the database and MQTT broker are ready before starting the backend
     depends_on:
       - mysql
       - mosquitto
     # Environment variables for the Go app to connect to the services
     environment:
+      GIN_MODE: release
       # Database connection
       DB_HOST: mysql
       DB_USER: cemas_admin
@@ -50,12 +55,10 @@ services:
     restart: always
     ports:
       # Map the default MQTT port
-      - "1883:1883"
+      - "8083:1883"
     # Optional: Map a volume for configuration if you need custom security/listeners
-    # volumes:
-    #   - ./mosquitto/config:/mosquitto/config
-    #   - ./mosquitto/data:/mosquitto/data
-    #   - ./mosquitto/log:/mosquitto/log
+    volumes:
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
 
 # Define the persistent volume for MySQL data
 volumes:

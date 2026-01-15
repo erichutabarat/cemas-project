@@ -1,10 +1,10 @@
 // k6/config/env.js
 const environments = {
     local: {
-        baseUrl: 'http://localhost:8080',
+        baseUrl: 'https://erichutabarat.my.id',
     },
     staging: {
-        baseUrl: 'https://staging-api.example.com',
+        baseUrl: 'https://localhost:8080',
     },
 };
 
