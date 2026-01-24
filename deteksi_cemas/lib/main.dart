@@ -2,6 +2,7 @@ import 'package:deteksi_cemas/features/auth/domain/repository/auth_repository.da
 import 'package:deteksi_cemas/features/auth/presentation/screens/login_screen.dart';
 import 'package:deteksi_cemas/features/auth/presentation/screens/register_screen.dart';
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_bloc.dart';
+import 'package:deteksi_cemas/features/auth/presentation/states/googleauth_bloc.dart';
 import 'package:deteksi_cemas/features/dashboard/dashboard_layout.dart';
 import 'package:deteksi_cemas/features/loading/presentation/screens/loading_screen.dart';
 import 'package:deteksi_cemas/features/onboarding/presentation/screens/onboarding_screen.dart';
@@ -37,6 +38,10 @@ void main() async {
           create: (context) => AuthBloc(authRepository: AuthRepository()),
         ),
         BlocProvider(create: (context) => LocaleCubit()),
+        // NEW GoogleAuthBloc
+        BlocProvider<GoogleAuthBloc>(
+          create: (context) => GoogleAuthBloc(authRepository: AuthRepository()),
+        ),
       ],
       child: const MainApp(),
     ),

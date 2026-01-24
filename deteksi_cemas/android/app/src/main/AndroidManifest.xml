@@ -5,6 +5,9 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
+        <meta-data
+        android:name="com.google.android.gms.common.api.GoogleSignInOptionsExtension"
+        android:resource="@xml/auth" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:deteksi_cemas/features/auth/domain/repository/auth_repository.dart';
+import 'package:deteksi_cemas/features/auth/presentation/screens/googleauth_screen.dart';
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_bloc.dart';
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_event.dart';
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_state.dart';
@@ -213,7 +214,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         height: MediaQuery.of(context).viewInsets.bottom,
                       ),
 
-                      // --- GOOGLE BUTTON (Fixed Colors) ---
+                      // Inside your LoginScreen's ListView
                       OutlinedButton(
                         style: OutlinedButton.styleFrom(
                           backgroundColor: Colors.white,
@@ -224,26 +225,29 @@ class _LoginScreenState extends State<LoginScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(40),
                           ),
-                          // Use the Pink color for border
                           side: BorderSide(color: _colorPink),
                         ),
                         onPressed: () {
-                          // Empty function
+                          // Simply navigate to the processing screen
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const GoogleAuthLoadingScreen(),
+                            ),
+                          );
                         },
                         child: Row(
-                          mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Image.network(
                               'https://developers.google.com/identity/images/g-logo.png',
                               height: 24,
-                              width: 24,
                             ),
                             const SizedBox(width: 12),
                             Text(
                               'Sign in with Google',
                               style: TextStyle(
-                                // Use Pink color for text
                                 color: _colorPink,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
