@@ -6,6 +6,7 @@ import 'package:deteksi_cemas/features/auth/presentation/states/auth_event.dart'
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_state.dart';
 // Ensure this import points to the file created above
 import 'package:deteksi_cemas/features/onboarding/domain/repository/backend_repository.dart';
+import 'package:deteksi_cemas/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:deteksi_cemas/features/auth/presentation/widget/appname_sketch.dart';
@@ -60,6 +61,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Add this line at the very top of your build method
+    final l10n = AppLocalizations.of(context)!;
     final screenHeight = MediaQuery.of(context).size.height;
     final blueContainerHeight = screenHeight * 0.3;
     final overlapAmount = 50.0;
@@ -201,7 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ).pushReplacementNamed("/register");
                         },
                         child: Text(
-                          'Don\'t have an account? Register here',
+                          l10n.dont_have_account,
                           style: TextStyle(color: Colors.grey[700]),
                         ),
                       ),

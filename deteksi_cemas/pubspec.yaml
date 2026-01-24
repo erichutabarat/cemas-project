@@ -9,10 +9,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations: # Provides core localization logic
+    sdk: flutter
   flutter_bloc: ^8.1.3
   equatable: ^2.0.5
   font_awesome_flutter: ^10.6.0
-  intl: ^0.19.0
+  intl: ^0.20.2
   lottie: ^3.1.0
   http: ^1.1.0
   flutter_secure_storage: ^8.0.0
@@ -23,8 +25,10 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  change_app_package_name: ^1.1.0
 
 flutter:
+  generate: true # This tells Flutter to auto-generate the translation code
   uses-material-design: true
   assets:
     - "assets/images/onboarding_welcome.png"

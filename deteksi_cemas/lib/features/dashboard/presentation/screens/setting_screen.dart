@@ -1,5 +1,8 @@
 import 'package:deteksi_cemas/features/dashboard/domain/services/token_service.dart';
+import 'package:deteksi_cemas/l10n/app_localizations.dart';
+import 'package:deteksi_cemas/language/localecubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SettingScreen extends StatefulWidget {
   final ScrollController? controller;
@@ -50,6 +53,9 @@ class _SettingScreenState extends State<SettingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // --- Inside build method ---
+    final l10n = AppLocalizations.of(context)!;
+    final currentLocale = Localizations.localeOf(context).languageCode;
     return ListView(
       controller: widget.controller,
       padding: const EdgeInsets.only(top: 24.0, bottom: 24.0),
@@ -114,7 +120,7 @@ class _SettingScreenState extends State<SettingScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
-            'General Settings',
+            l10n.general_settings,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -141,13 +147,24 @@ class _SettingScreenState extends State<SettingScreen> {
           onChanged: _onToggleNotifications,
         ),
 
+        // Language Switcher
+        ListTile(
+          title: Text(l10n.language), // Use ARB key
+          subtitle: Text(
+            currentLocale == 'en' ? 'English' : 'Bahasa Indonesia',
+          ),
+          leading: const Icon(Icons.language_outlined),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: _showLanguageDialog,
+        ),
+
         // --- 3. App/Account Settings Group ---
         const Divider(height: 32, thickness: 1),
 
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
-            'Account & App',
+            l10n.account_and_app,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -158,7 +175,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
         // Privacy Policy
         ListTile(
-          title: const Text('Privacy Policy'),
+          title: Text(l10n.privacy_policy),
           leading: const Icon(Icons.lock_outline),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => _onNavigate('Privacy Policy'),
@@ -166,7 +183,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
         // Terms of Service
         ListTile(
-          title: const Text('Terms of Service'),
+          title: Text(l10n.terms_service),
           leading: const Icon(Icons.description_outlined),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => _onNavigate('Terms of Service'),
@@ -174,7 +191,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
         // About
         ListTile(
-          title: const Text('About App'),
+          title: Text(l10n.about_app),
           leading: const Icon(Icons.info_outline),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => _onNavigate('About App'),
@@ -211,6 +228,57 @@ class _SettingScreenState extends State<SettingScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  void _showLanguageDialog() {
+    final l10n = AppLocalizations.of(context)!;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                l10n.selectLanguage,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              ListTile(
+                leading: const Text("🇺🇸", style: TextStyle(fontSize: 24)),
+                title: const Text("English"),
+                trailing: Localizations.localeOf(context).languageCode == 'en'
+                    ? Icon(Icons.check, color: Theme.of(context).primaryColor)
+                    : null,
+                onTap: () {
+                  context.read<LocaleCubit>().setLocale('en');
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Text("🇮🇩", style: TextStyle(fontSize: 24)),
+                title: const Text("Bahasa Indonesia"),
+                trailing: Localizations.localeOf(context).languageCode == 'id'
+                    ? Icon(Icons.check, color: Theme.of(context).primaryColor)
+                    : null,
+                onTap: () {
+                  context.read<LocaleCubit>().setLocale('id');
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

@@ -1,5 +1,6 @@
 // ignore_for_file: sized_box_for_whitespace, deprecated_member_use
 
+import 'package:deteksi_cemas/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -10,6 +11,7 @@ class HeaderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     const double headerHeight = 200.0;
     const double cardHeight = 100.0;
 
@@ -63,8 +65,8 @@ class HeaderCard extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "Welcome back",
+                        Text(
+                          l10n.welcome_back,
                           style: TextStyle(fontSize: 16, color: Colors.white70),
                         ),
                         Text(

@@ -1,4 +1,4 @@
-package com.example.deteksi_cemas
+package com.cemasproject.app
 
 import io.flutter.embedding.android.FlutterActivity
 

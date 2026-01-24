@@ -2,6 +2,7 @@ import 'package:deteksi_cemas/features/auth/presentation/states/register_bloc.da
 import 'package:deteksi_cemas/features/auth/presentation/states/register_event.dart';
 import 'package:deteksi_cemas/features/auth/presentation/states/register_state.dart';
 import 'package:deteksi_cemas/features/auth/presentation/widget/appname_sketch.dart';
+import 'package:deteksi_cemas/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -52,6 +53,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final screenHeight = MediaQuery.of(context).size.height;
     final blueContainerHeight = screenHeight * 0.3;
     final overlapAmount = 50.0;
@@ -272,7 +274,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             context,
                           ).pushReplacementNamed("/login"),
                           child: Text(
-                            'Already have an account? Login here',
+                            l10n.have_account,
                             style: TextStyle(color: Colors.grey[700]),
                           ),
                         ),

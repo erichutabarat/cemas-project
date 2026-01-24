@@ -4,6 +4,7 @@ import 'package:deteksi_cemas/features/dashboard/data/models/article_model.dart'
 import 'package:deteksi_cemas/features/dashboard/domain/repository/recommendation_repository.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/article_card.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/header_card.dart';
+import 'package:deteksi_cemas/l10n/app_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -88,6 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
         statusBarColor: Colors.red.shade400,
@@ -108,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
               SizedBox(height: 20),
               // --- Articles Section ---
               Text(
-                'Articles',
+                l10n.articles,
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 12),
@@ -149,6 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget quickMenu(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.all(18.0),
       child: Container(
@@ -169,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Quick Menu",
+              l10n.quick_menu,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,

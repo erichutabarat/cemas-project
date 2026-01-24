@@ -1,6 +1,7 @@
 import 'package:deteksi_cemas/features/dashboard/data/medical_record_data.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/medical_history_card.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/shaded_line.dart';
+import 'package:deteksi_cemas/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -14,6 +15,7 @@ class HistoryScreen extends StatefulWidget {
 class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: Padding(
         padding: EdgeInsets.all(0),
@@ -45,7 +47,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     Icon(Icons.history, color: Colors.white),
                     SizedBox(width: 8),
                     Text(
-                      "History",
+                      l10n.history,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 24,
@@ -107,7 +109,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Medical History",
+                      l10n.medical_history,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,

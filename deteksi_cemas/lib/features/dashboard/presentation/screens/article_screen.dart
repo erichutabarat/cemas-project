@@ -5,6 +5,7 @@ import 'package:deteksi_cemas/features/survey/data/models/assessment_results_mod
 import 'package:deteksi_cemas/features/survey/data/repository/hars_questions.dart';
 import 'package:deteksi_cemas/features/survey/presentation/screens/hars_result_screen.dart';
 import 'package:deteksi_cemas/features/survey/presentation/screens/hars_survey_screen.dart';
+import 'package:deteksi_cemas/l10n/app_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -30,6 +31,7 @@ class _ArticleScreenState extends State<ArticleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: SingleChildScrollView(
         controller: widget.controller,
@@ -90,8 +92,8 @@ class _ArticleScreenState extends State<ArticleScreen> {
                     startSurvey(context);
                   },
                   icon: const Icon(Icons.psychology_alt),
-                  label: const Text(
-                    'Start New Survey',
+                  label: Text(
+                    l10n.start_survey,
                     style: TextStyle(fontSize: 18),
                   ),
                 ),
@@ -103,7 +105,7 @@ class _ArticleScreenState extends State<ArticleScreen> {
             Padding(
               padding: const EdgeInsets.all(12.0),
               child: Text(
-                'Survey History',
+                l10n.survey_history,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
@@ -301,6 +303,7 @@ class _ArticleScreenState extends State<ArticleScreen> {
   }
 
   Widget _buildInfoCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       elevation: 4,
       child: Padding(
@@ -309,16 +312,14 @@ class _ArticleScreenState extends State<ArticleScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'What is HARS?',
+              l10n.what_is_hars,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
-            const Text(
-              'The Hamilton Anxiety Rating Scale (HARS) is a 14-item survey used to assess the severity of anxiety symptoms. Each item is rated on a 0-4 scale. The total score helps determine your level of anxiety (e.g., normal, mild, moderate, severe).',
-            ),
+            Text(l10n.hars_desc),
             const SizedBox(height: 12),
-            const Text(
-              'Disclaimer: This tool is for informational tracking only and is not a substitute for professional medical diagnosis or treatment.',
+            Text(
+              l10n.hars_disclaimer,
               style: TextStyle(
                 fontStyle: FontStyle.italic,
                 color: Colors.redAccent,

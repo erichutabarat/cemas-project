@@ -2,8 +2,9 @@
 
 import 'package:deteksi_cemas/features/onboarding/onboarding_controller.dart';
 import 'package:deteksi_cemas/features/onboarding/services/onboarding_services.dart';
+import 'package:deteksi_cemas/l10n/app_localizations.dart';
+import 'package:deteksi_cemas/features/onboarding/data/onboarding_items.dart'; // Keep the class definition
 import 'package:flutter/material.dart';
-import '../../data/onboarding_items.dart';
 import '../widgets/onboarding_content.dart';
 import '../widgets/onboarding_dots.dart';
 
@@ -19,9 +20,42 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Initialize Localization
+    final l10n = AppLocalizations.of(context)!;
+
+    // 2. Build the list dynamically inside build()
+    // This ensures it refreshes when the language changes
+    final List<OnboardingItem> translatedItems = [
+      OnboardingItem(
+        title: l10n.onboardingTitle1,
+        description: l10n.onboardingDesc1,
+        image: "assets/images/onboarding_welcome.png",
+      ),
+      OnboardingItem(
+        title: l10n.onboardingTitle2,
+        description: l10n.onboardingDesc2,
+        image: "assets/images/onboarding_heartbeat.png",
+      ),
+      OnboardingItem(
+        title: l10n.onboardingTitle3,
+        description: l10n.onboardingDesc3,
+        image: "assets/images/onboarding_survey.png",
+      ),
+      OnboardingItem(
+        title: l10n.onboardingTitle4,
+        description: l10n.onboardingDesc4,
+        image: "assets/images/onboarding_history.png",
+      ),
+      OnboardingItem(
+        title: l10n.onboardingTitle5,
+        description: l10n.onboardingDesc5,
+        image: "assets/images/onboarding_explore.png",
+      ),
+    ];
+
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFff0f7b), Color(0xFFf89b29)],
             begin: Alignment.topLeft,
@@ -33,12 +67,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Expanded(
               child: PageView.builder(
                 controller: controller.pageController,
-                itemCount: onboardingItems.length,
+                itemCount: translatedItems.length,
                 onPageChanged: (index) {
                   setState(() => controller.onPageChanged(index));
                 },
                 itemBuilder: (_, index) {
-                  return OnboardingContent(item: onboardingItems[index]);
+                  return OnboardingContent(item: translatedItems[index]);
                 },
               ),
             ),
@@ -46,7 +80,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             const SizedBox(height: 8),
 
             OnboardingDots(
-              count: onboardingItems.length,
+              count: translatedItems.length,
               current: controller.currentIndex,
             ),
 
@@ -55,11 +89,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 32),
               child: SizedBox(
-                // 1. Mengatur lebar tombol menjadi 70% dari lebar layar
                 width: MediaQuery.of(context).size.width * 0.7,
                 child: ElevatedButton(
                   onPressed: () async {
-                    if (controller.currentIndex == onboardingItems.length - 1) {
+                    if (controller.currentIndex == translatedItems.length - 1) {
                       await OnboardingService.setCompleted();
                       Navigator.pushReplacementNamed(context, "/login");
                     } else {
@@ -68,7 +101,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    foregroundColor: Color(0xFF3B2A5F),
+                    foregroundColor: const Color(0xFF3B2A5F),
                     elevation: 3,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
@@ -76,9 +109,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ),
                   child: Text(
-                    controller.currentIndex == onboardingItems.length - 1
-                        ? "Get Started"
-                        : "Next",
+                    // 3. Translated Button Text
+                    controller.currentIndex == translatedItems.length - 1
+                        ? l10n.getStarted
+                        : l10n.next,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
