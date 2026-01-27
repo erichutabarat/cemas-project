@@ -15,6 +15,12 @@ class SettingScreen extends StatefulWidget {
 }
 
 class _SettingScreenState extends State<SettingScreen> {
+  // app version
+  final String appVersion = const String.fromEnvironment(
+    'APP_VERSION',
+    defaultValue: '1.0.0',
+  );
+
   // Mock user data for the profile card
   final UserRepository _userRepository = UserRepository();
   late Future<UserProfile> _userFuture;
@@ -255,7 +261,7 @@ class _SettingScreenState extends State<SettingScreen> {
           child: Padding(
             padding: const EdgeInsets.only(top: 20),
             child: Text(
-              'App Version 1.0.0',
+              'App Version $appVersion',
               style: TextStyle(color: Colors.grey[500], fontSize: 12),
             ),
           ),

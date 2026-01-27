@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'package:deteksi_cemas/features/onboarding/services/onboarding_services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -15,6 +16,8 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
+  // app version
+  final String _appVersion = dotenv.env['APP_VERSION'] ?? '1.0.0';
   @override
   void initState() {
     super.initState();
@@ -80,9 +83,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              const Text(
-                "v1.0.0", // Manual version or use package_info_plus
-                style: TextStyle(
+              Text(
+                "v$_appVersion", // Manual version or use package_info_plus
+                style: const TextStyle(
                   color: Colors.white54,
                   fontSize: 12,
                   fontWeight: FontWeight.w300,
