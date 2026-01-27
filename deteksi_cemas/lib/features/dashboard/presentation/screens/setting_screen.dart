@@ -1,3 +1,5 @@
+import 'package:deteksi_cemas/features/dashboard/data/models/userprofile_model.dart';
+import 'package:deteksi_cemas/features/dashboard/domain/repository/user_repository.dart';
 import 'package:deteksi_cemas/features/dashboard/domain/services/token_service.dart';
 import 'package:deteksi_cemas/l10n/app_localizations.dart';
 import 'package:deteksi_cemas/language/localecubit.dart';
@@ -14,8 +16,9 @@ class SettingScreen extends StatefulWidget {
 
 class _SettingScreenState extends State<SettingScreen> {
   // Mock user data for the profile card
-  String userName = "Jane Doe";
-  String userEmail = "jane.doe@example.com";
+  final UserRepository _userRepository = UserRepository();
+  late Future<UserProfile> _userFuture;
+
   bool isDarkMode = false;
   bool enableNotifications = true;
 
@@ -52,6 +55,12 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _userFuture = _userRepository.fetchUserProfile();
+  }
+
+  @override
   Widget build(BuildContext context) {
     // --- Inside build method ---
     final l10n = AppLocalizations.of(context)!;
@@ -61,57 +70,81 @@ class _SettingScreenState extends State<SettingScreen> {
       padding: const EdgeInsets.only(top: 24.0, bottom: 24.0),
       children: <Widget>[
         // --- 1. User Profile Header (Modern Card Style) ---
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Row(
-                children: [
-                  // Avatar
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Theme.of(
-                      context,
-                    ).primaryColor.withValues(alpha: 0.3),
-                    child: Icon(
-                      Icons.person,
-                      size: 30,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  // User Info
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+        FutureBuilder<UserProfile>(
+          future: _userFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Padding(
+                padding: EdgeInsets.all(32),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            if (snapshot.hasError) {
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  snapshot.error.toString(),
+                  style: const TextStyle(color: Colors.red),
+                ),
+              );
+            }
+
+            final user = snapshot.data!;
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              child: Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Row(
                     children: [
-                      Text(
-                        userName,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Theme.of(
+                          context,
+                        ).primaryColor.withValues(alpha: 0.3),
+                        child: Icon(
+                          Icons.person,
+                          size: 28,
+                          color: Theme.of(context).primaryColor,
                         ),
                       ),
-                      Text(
-                        userEmail,
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      const SizedBox(width: 14),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user.name,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            user.email,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.edit_outlined),
+                        onPressed: () => _onNavigate('Edit Profile'),
                       ),
                     ],
                   ),
-                  const Spacer(),
-                  // Edit Button
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined),
-                    onPressed: () => _onNavigate('Edit Profile'),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
 
         const Divider(height: 32, thickness: 1),

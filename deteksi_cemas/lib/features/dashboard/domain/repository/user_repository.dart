@@ -1,3 +1,4 @@
+import 'package:deteksi_cemas/features/dashboard/data/models/userprofile_model.dart';
 import 'package:deteksi_cemas/features/dashboard/domain/services/token_service.dart';
 import 'package:deteksi_cemas/features/onboarding/domain/repository/backend_repository.dart';
 import 'package:http/http.dart' as http;
@@ -6,6 +7,30 @@ import 'dart:convert';
 class UserRepository {
   // Add your repository methods and properties here
   final tokenService = TokenStorageService();
+  final String userProfileEndpoint = '/api/user/profile';
+
+  // Get User Profile
+  Future<UserProfile> fetchUserProfile() async {
+    final String apiurl = await BackendRepository.getBackendUrl();
+    final url = Uri.parse('$apiurl$userProfileEndpoint');
+    final token = await tokenService.readToken();
+
+    if (token == null) {
+      throw Exception('Authorization token not found.');
+    }
+
+    final response = await http.get(
+      url,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      final jsonResponse = jsonDecode(response.body);
+      return UserProfile.fromJson(jsonResponse);
+    } else {
+      throw Exception('Failed to load user profile: ${response.statusCode}');
+    }
+  }
 
   // Get user history
   Future<List<dynamic>> fetchUsersSurveyHistory() async {
