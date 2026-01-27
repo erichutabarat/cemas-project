@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:deteksi_cemas/features/dashboard/domain/repository/heartbeat_repository.dart';
+import 'package:deteksi_cemas/features/dashboard/domain/services/mqtt_service.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/heartbeat_animation.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -45,10 +46,8 @@ class _RecordScreenState extends State<RecordScreen> {
   // --- NEW: Handler to receive data from the bottom sheet ---
   void _handleDeviceSave(String deviceId) {
     setState(() {
-      // Assuming a simple connection logic here: if ID is non-empty, device is "connected"
       _deviceConnected = deviceId.isNotEmpty;
-      // Convert ID to int, handle potential failure if necessary
-      _currentDeviceId = int.tryParse(deviceId) ?? 0;
+      _currentDeviceId = int.tryParse(deviceId);
     });
   }
 
@@ -559,33 +558,45 @@ class _IotIdSetupSheetState extends State<_IotIdSetupSheet> {
   }
 
   Future<void> _onCheck(BuildContext context) async {
-    // Changed to Future<void> and added async
-    if (kDebugMode) {
-      print('Checking ID: $_currentDeviceId');
-    }
+    if (_currentDeviceId.isEmpty) return;
 
-    // 1. Set status to checking
     setState(() {
       _iotcheckstatus = IoTDeviceCheckStatus.checking;
     });
 
-    // 2. Introduce the delay (simulating a network request)
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final mqtt = MqttService();
+      await mqtt.connect();
 
-    if (!mounted) return;
+      final exist = await mqtt.checkDeviceExist(_currentDeviceId);
 
-    // 3. Set status to ready (or failed) after delay
-    setState(() {
-      _iotcheckstatus = IoTDeviceCheckStatus.ready;
-    });
+      if (!mounted) return;
 
-    // Show final status message
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Device Check Complete! Status: Ready.'),
-        duration: const Duration(milliseconds: 1500),
-      ),
-    );
+      setState(() {
+        _iotcheckstatus = exist
+            ? IoTDeviceCheckStatus.ready
+            : IoTDeviceCheckStatus.failed;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            exist ? 'Device online & valid ✅' : 'Device not found ❌',
+          ),
+          duration: const Duration(milliseconds: 1500),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _iotcheckstatus = IoTDeviceCheckStatus.failed;
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('MQTT connection error')));
+    }
   }
 
   void _onSave() {
@@ -674,7 +685,9 @@ class _IotIdSetupSheetState extends State<_IotIdSetupSheet> {
               // SAVE Button
               Expanded(
                 child: ElevatedButton(
-                  onPressed: isDeviceIdValid ? _onSave : null,
+                  onPressed: _iotcheckstatus == IoTDeviceCheckStatus.ready
+                      ? _onSave
+                      : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
                     foregroundColor: Colors.white,
