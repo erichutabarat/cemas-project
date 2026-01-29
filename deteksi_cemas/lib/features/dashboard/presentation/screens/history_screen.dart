@@ -1,7 +1,9 @@
-import 'package:deteksi_cemas/features/dashboard/data/medical_record_data.dart';
+import 'package:deteksi_cemas/features/dashboard/data/models/medical_record_model.dart';
+import 'package:deteksi_cemas/features/dashboard/domain/repository/history_repository.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/medical_history_card.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/shaded_line.dart';
 import 'package:deteksi_cemas/l10n/app_localizations.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -13,6 +15,35 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
+  List<MedicalRecordModel> medicalRecords = [];
+  bool isLoading = true;
+  final historyRepo = HistoryRepository();
+  @override
+  void initState() {
+    super.initState();
+    _loadMedicalRecords();
+  }
+
+  void _loadMedicalRecords() async {
+    try {
+      // 1. Explicitly type the result from the repo
+      final List<MedicalRecordModel> records = await historyRepo
+          .fetchUsersInspectionHistory();
+      if (kDebugMode) {
+        print("Fetched records: $records");
+      }
+      setState(() {
+        medicalRecords = records;
+        isLoading = false;
+      });
+    } catch (e) {
+      // Handle error appropriately
+      if (kDebugMode) {
+        print('Error fetching medical records: $e');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -117,18 +148,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ),
                     SizedBox(height: 14),
                     // list here
-                    ListView.separated(
-                      shrinkWrap: true, // <-- allow height to grow with content
-                      physics:
-                          NeverScrollableScrollPhysics(), // <-- disable scrolling here
-                      itemCount: sampleMedicalRecords.length,
-                      separatorBuilder: (context, index) =>
-                          SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final item = sampleMedicalRecords[index];
-                        return MedicalHistoryCard(medicalRecord: item);
-                      },
-                    ),
+                    isLoading
+                        ? CircularProgressIndicator()
+                        : ListView.separated(
+                            shrinkWrap:
+                                true, // <-- allow height to grow with content
+                            physics:
+                                NeverScrollableScrollPhysics(), // <-- disable scrolling here
+                            itemCount: medicalRecords.length,
+                            separatorBuilder: (context, index) =>
+                                SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final item = medicalRecords[index];
+                              return MedicalHistoryCard(medicalRecord: item);
+                            },
+                          ),
                   ],
                 ),
               ),

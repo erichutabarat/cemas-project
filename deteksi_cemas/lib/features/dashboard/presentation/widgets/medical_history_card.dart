@@ -28,8 +28,14 @@ class MedicalHistoryCard extends StatelessWidget {
           Column(
             children: [
               Text(
-                "${medicalRecord.bpm} BPM",
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+                // If bpm is 0, show "N/A BPM", otherwise show the number
+                medicalRecord.bpm == 0 ? "N/A BPM" : "${medicalRecord.bpm} BPM",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  // Optional: make N/A look slightly different (greyed out)
+                  color: medicalRecord.bpm == 0 ? Colors.grey : Colors.black,
+                ),
               ),
               Text(
                 formatDate(medicalRecord.checkedAt),
