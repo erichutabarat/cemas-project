@@ -1,18 +1,64 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:just_audio/just_audio.dart';
 import '../../data/models/medical_record_model.dart';
 
-class InspectionDetailScreen extends StatelessWidget {
+class InspectionDetailScreen extends StatefulWidget {
   final MedicalRecordModel record;
-
   const InspectionDetailScreen({super.key, required this.record});
 
   @override
+  State<InspectionDetailScreen> createState() => _InspectionDetailScreenState();
+}
+
+class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
+  late AudioPlayer _audioPlayer;
+
+  @override
+  void initState() {
+    super.initState();
+    _audioPlayer = AudioPlayer();
+    _initAudio();
+  }
+
+  Future<void> _initAudio() async {
+    // 1. Get the full string: "https://localhost:8080/uploads/rec_123.wav"
+    String rawUrl = widget.record.audioUrl;
+
+    // 2. Extract just the filename (everything after the last '/')
+    String fileName = rawUrl.split('/').last;
+
+    // 3. Combine with your real production domain
+    final productionUrl = "https://erichutabarat.my.id/uploads/$fileName";
+
+    try {
+      await _audioPlayer.setUrl(productionUrl);
+    } catch (e) {
+      debugPrint("Error loading audio: $e");
+    }
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.stop(); // Ensure audio stops immediately
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  // Utility to format Duration into MM:SS
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    return "$twoDigitMinutes:$twoDigitSeconds";
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Logic for color based on anxiety level
-    Color statusColor = _getStatusColor(record.result);
+    Color statusColor = _getStatusColor(widget.record.result);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text("Inspection Detail"),
         backgroundColor: Colors.white,
@@ -44,21 +90,30 @@ class InspectionDetailScreen extends StatelessWidget {
               children: [
                 _buildMetricTile(
                   "BPM",
-                  record.bpm == 0 ? "N/A" : "${record.bpm}",
+                  widget.record.bpm == 0 ? "N/A" : "${widget.record.bpm}",
                   FontAwesomeIcons.heartPulse,
                   Colors.red,
                 ),
                 _buildMetricTile(
                   "HRV",
-                  record.hrv == 0 ? "N/A" : "${record.hrv} ms",
+                  widget.record.hrv == 0 ? "N/A" : "${widget.record.hrv} ms",
                   FontAwesomeIcons.waveSquare,
                   Colors.blue,
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
-            // 3. AI Analysis Section
+            // 3. Audio Player Section
+            const Text(
+              "Heartbeat Recording",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            _buildAudioPlayerCard(),
+            const SizedBox(height: 32),
+
+            // 4. AI Analysis Section
             const Text(
               "AI Analysis Details",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -66,19 +121,21 @@ class InspectionDetailScreen extends StatelessWidget {
             const SizedBox(height: 12),
             _buildInfoTile(
               "Confidence Score",
-              "${(record.confidence * 100).toStringAsFixed(1)}%",
+              "${(widget.record.confidence * 100).toStringAsFixed(1)}%",
               "How certain the AI is about this result.",
               Icons.psychology,
             ),
             _buildInfoTile(
               "Anxiety Score",
-              "${record.anxietyScore.toStringAsFixed(1)}/100",
+              "${widget.record.anxietyScore.toStringAsFixed(1)}/100",
               "Higher scores indicate more symptoms detected.",
               Icons.analytics,
             ),
-            // Only show button if result is Unknown
+
             const SizedBox(height: 32),
-            if (record.result == "Unknown")
+
+            // 5. Analyze Now Button (Conditional)
+            if (widget.record.result == "Unknown")
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -106,21 +163,135 @@ class InspectionDetailScreen extends StatelessWidget {
 
   // --- Helper Widgets ---
 
+  Widget _buildAudioPlayerCard() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: StreamBuilder<PlayerState>(
+        stream: _audioPlayer.playerStateStream,
+        builder: (context, snapshot) {
+          final playerState = snapshot.data;
+          final processingState = playerState?.processingState;
+          final playing = playerState?.playing;
+
+          return Column(
+            children: [
+              Row(
+                children: [
+                  // Play/Pause Button
+                  IconButton(
+                    iconSize: 48,
+                    icon: (playing != true)
+                        ? const Icon(Icons.play_circle_fill, color: Colors.red)
+                        : const Icon(
+                            Icons.pause_circle_filled,
+                            color: Colors.red,
+                          ),
+                    onPressed: () {
+                      if (playing != true) {
+                        _audioPlayer.play();
+                      } else {
+                        _audioPlayer.pause();
+                      }
+                    },
+                  ),
+                  // Progress Slider
+                  Expanded(
+                    child: StreamBuilder<Duration>(
+                      stream: _audioPlayer.positionStream,
+                      builder: (context, snapshot) {
+                        final position = snapshot.data ?? Duration.zero;
+                        final duration = _audioPlayer.duration ?? Duration.zero;
+
+                        // FIX: Clamp the value so it's never > max
+                        double sliderValue = position.inMilliseconds.toDouble();
+                        double maxDuration = duration.inMilliseconds.toDouble();
+
+                        // Ensure maxDuration is at least 1.0 to avoid division by zero errors
+                        if (maxDuration <= 0) maxDuration = 1.0;
+
+                        // Force sliderValue to stay within [0, maxDuration]
+                        if (sliderValue > maxDuration)
+                          sliderValue = maxDuration;
+                        if (sliderValue < 0) sliderValue = 0;
+
+                        return Column(
+                          children: [
+                            Slider(
+                              activeColor: Colors.red,
+                              inactiveColor: Colors.red.withAlpha(50),
+                              value: sliderValue, // Use the clamped value
+                              max: maxDuration, // Use the safe max
+                              onChanged: (value) {
+                                _audioPlayer.seek(
+                                  Duration(milliseconds: value.toInt()),
+                                );
+                              },
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    _formatDuration(position),
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                  Text(
+                                    _formatDuration(duration),
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  if (processingState == ProcessingState.buffering)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 16.0),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildHeaderCard(Color color) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
+        color: color.withAlpha(40),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.5), width: 1.5),
+        border: Border.all(color: color.withAlpha(100), width: 1.5),
       ),
       child: Column(
         children: [
           Text(
-            record.result.toUpperCase(),
+            widget.record.result.toUpperCase(),
             style: TextStyle(
-              fontSize: 22,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
               color: color,
             ),
@@ -128,7 +299,7 @@ class InspectionDetailScreen extends StatelessWidget {
           const SizedBox(height: 8),
           const Text(
             "Detected Anxiety Level",
-            style: TextStyle(color: Colors.black54),
+            style: TextStyle(color: Colors.black54, fontSize: 16),
           ),
         ],
       ),
@@ -147,19 +318,24 @@ class InspectionDetailScreen extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
-          BoxShadow(color: Colors.grey.withValues(alpha: 0.1), blurRadius: 10),
+          BoxShadow(
+            color: Colors.grey.withAlpha(20),
+            blurRadius: 10,
+            spreadRadius: 2,
+          ),
         ],
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: color, size: 20),
+          Icon(icon, color: color, size: 24),
           const SizedBox(height: 8),
           Text(
             value,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14)),
         ],
       ),
     );
@@ -179,7 +355,7 @@ class InspectionDetailScreen extends StatelessWidget {
       ),
       title: Text(
         "$title: $value",
-        style: const TextStyle(fontWeight: FontWeight.bold),
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
       ),
       subtitle: Text(description),
     );
@@ -199,7 +375,6 @@ class InspectionDetailScreen extends StatelessWidget {
   }
 
   void _handleAnalyzeNow(BuildContext context) async {
-    // Show a loading dialog
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -207,23 +382,17 @@ class InspectionDetailScreen extends StatelessWidget {
     );
 
     try {
-      // TODO: Call your Repository method here
-      // await historyRepo.analyzeInspection(record.id);
-
-      // Simulate network delay
+      // Logic for triggering analysis goes here
       await Future.delayed(const Duration(seconds: 2));
 
       if (context.mounted) {
-        Navigator.pop(context); // Close loading dialog
-
-        // Show success message
+        Navigator.pop(context); // Close loading
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Analysis complete! Please refresh history."),
           ),
         );
-
-        Navigator.pop(context); // Go back to History list
+        Navigator.pop(context); // Return to list
       }
     } catch (e) {
       if (context.mounted) {
