@@ -76,6 +76,28 @@ class InspectionDetailScreen extends StatelessWidget {
               "Higher scores indicate more symptoms detected.",
               Icons.analytics,
             ),
+            // Only show button if result is Unknown
+            const SizedBox(height: 32),
+            if (record.result == "Unknown")
+              SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: ElevatedButton.icon(
+                  onPressed: () => _handleAnalyzeNow(context),
+                  icon: const Icon(Icons.auto_awesome),
+                  label: const Text(
+                    "Analyze Now",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade700,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -173,6 +195,43 @@ class InspectionDetailScreen extends StatelessWidget {
         return Colors.red;
       default:
         return Colors.grey;
+    }
+  }
+
+  void _handleAnalyzeNow(BuildContext context) async {
+    // Show a loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // TODO: Call your Repository method here
+      // await historyRepo.analyzeInspection(record.id);
+
+      // Simulate network delay
+      await Future.delayed(const Duration(seconds: 2));
+
+      if (context.mounted) {
+        Navigator.pop(context); // Close loading dialog
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Analysis complete! Please refresh history."),
+          ),
+        );
+
+        Navigator.pop(context); // Go back to History list
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Error: $e")));
+      }
     }
   }
 }
