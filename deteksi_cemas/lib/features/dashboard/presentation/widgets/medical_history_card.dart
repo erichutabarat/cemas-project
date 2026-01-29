@@ -1,6 +1,7 @@
 import 'package:deteksi_cemas/features/dashboard/data/models/medical_record_model.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 
 class MedicalHistoryCard extends StatelessWidget {
   final MedicalRecordModel medicalRecord;
@@ -51,5 +52,10 @@ class MedicalHistoryCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String formatDate(DateTime date) {
+    // This will format it as: Jan 26, 2026 - 10:13
+    return DateFormat('MMM d, yyyy - HH:mm').format(date);
   }
 }

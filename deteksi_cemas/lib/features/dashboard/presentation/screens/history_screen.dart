@@ -1,5 +1,6 @@
 import 'package:deteksi_cemas/features/dashboard/data/models/medical_record_model.dart';
 import 'package:deteksi_cemas/features/dashboard/domain/repository/history_repository.dart';
+import 'package:deteksi_cemas/features/dashboard/presentation/screens/inspection_detail_screen.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/medical_history_card.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/shaded_line.dart';
 import 'package:deteksi_cemas/l10n/app_localizations.dart';
@@ -160,7 +161,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 SizedBox(height: 12),
                             itemBuilder: (context, index) {
                               final item = medicalRecords[index];
-                              return MedicalHistoryCard(medicalRecord: item);
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) {
+                                        return InspectionDetailScreen(
+                                          record: item,
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
+                                child: MedicalHistoryCard(medicalRecord: item),
+                              );
                             },
                           ),
                   ],
