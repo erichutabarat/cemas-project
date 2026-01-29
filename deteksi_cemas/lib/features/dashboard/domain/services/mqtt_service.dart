@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:async';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
@@ -13,6 +15,47 @@ class MqttService {
 
   MqttService._internal();
 
+  /// --- NEW: PRIVATE HELPER FOR PUBLISHING ---
+  void _publish(String topic, String message) {
+    if (_client == null ||
+        _client!.connectionStatus?.state != MqttConnectionState.connected) {
+      print("Cannot publish: MQTT not connected");
+      return;
+    }
+
+    final builder = MqttClientPayloadBuilder();
+    builder.addString(message);
+
+    _client!.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!);
+    print("Published [$message] to $topic");
+  }
+
+  /// --- NEW: SEND CONNECT HANDSHAKE ---
+  /// Call this when the user enters the recording screen to set status to "USED"
+  void sendConnectHandshake(String deviceId) {
+    final topic = 'esp32/device_$deviceId/control';
+    _publish(topic, 'CONNECT');
+  }
+
+  /// --- NEW: START RECORDING ---
+  void startRecording(String deviceId) {
+    final topic = 'esp32/device_$deviceId/control';
+    _publish(topic, 'START');
+  }
+
+  /// --- NEW: STOP RECORDING ---
+  void stopRecording(String deviceId) {
+    final topic = 'esp32/device_$deviceId/control';
+    _publish(topic, 'STOP');
+  }
+
+  /// --- NEW: SEND AUTH TOKEN ---
+  /// Call this so the ESP32 knows which token to use for the upload
+  void sendAuthToken(String deviceId, String token) {
+    final topic = 'esp32/device_$deviceId/auth';
+    _publish(topic, token); // Usually includes "Bearer "
+  }
+
   /// CONNECT SAFELY
   Future<void> connect() async {
     if (_client != null &&
@@ -21,16 +64,27 @@ class MqttService {
     }
 
     _client = MqttServerClient(_broker, _clientId);
-    _client!.port = 1883;
+    _client!.port = 8083;
     _client!.keepAlivePeriod = 20;
-    _client!.logging(on: false);
 
+    // debug topics:
+    _client!.onDisconnected = () => print('Disconnected');
+    _client!.onConnected = () => print('Connected to Broker');
+    _client!.onSubscribed = (topic) => print('Subscribed to $topic');
+
+    // CRITICAL: Ensure the protocol is correct
     _client!.connectionMessage = MqttConnectMessage()
         .withClientIdentifier(_clientId)
-        .startClean()
+        .startClean() // This is important for "check" functionality
         .withWillQos(MqttQos.atLeastOnce);
 
-    await _client!.connect();
+    try {
+      print('Connecting to $_broker...');
+      await _client!.connect();
+    } catch (e) {
+      print('Exception: $e');
+      disconnect();
+    }
   }
 
   /// 🔍 CHECK DEVICE EXIST
@@ -56,9 +110,15 @@ class MqttService {
           msg.payload.message,
         );
 
-        if (payload == 'ONLINE') {
+        if (payload == 'IDLE' ||
+            payload == 'USED' ||
+            payload == 'RECORDING_STARTED') {
           if (!completer.isCompleted) {
-            completer.complete(true);
+            if (!completer.isCompleted) {
+              completer.complete(
+                true,
+              ); // The device exists and is reporting a state
+            }
           }
           _client!.unsubscribe(topic);
           sub.cancel();

@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:deteksi_cemas/features/dashboard/domain/repository/heartbeat_repository.dart';
 import 'package:deteksi_cemas/features/dashboard/domain/services/mqtt_service.dart';
+import 'package:deteksi_cemas/features/dashboard/domain/services/token_service.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/heartbeat_animation.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +20,10 @@ class RecordScreen extends StatefulWidget {
 
 class _RecordScreenState extends State<RecordScreen> {
   // CHANGED: Made non-final so we can update it from the bottom sheet
+  // ignore: unused_field
   final HeartbeatRepository _heartbeatRepository = HeartbeatRepository();
+  final MqttService _mqttService = MqttService();
+  final tokenService = TokenStorageService();
 
   bool _deviceConnected = false;
   late RecordStatus _recordStatus = RecordStatus.idle;
@@ -44,11 +48,19 @@ class _RecordScreenState extends State<RecordScreen> {
   }
 
   // --- NEW: Handler to receive data from the bottom sheet ---
-  void _handleDeviceSave(String deviceId) {
+  // --- Updated Device Handler ---
+  void _handleDeviceSave(String deviceId) async {
     setState(() {
       _deviceConnected = deviceId.isNotEmpty;
       _currentDeviceId = int.tryParse(deviceId);
     });
+
+    if (_deviceConnected) {
+      // 1. Connect to MQTT Broker
+      await _mqttService.connect();
+      // 2. Send Handshake to set ESP32 status to "USED"
+      _mqttService.sendConnectHandshake(deviceId);
+    }
   }
 
   @override
@@ -363,42 +375,61 @@ class _RecordScreenState extends State<RecordScreen> {
     );
   }
 
-  void _startRecording(BuildContext context) {
-    if (kDebugMode) {
-      print(_recordStatus);
-    }
+  // --- Updated Recording Logic ---
+  void _startRecording(BuildContext context) async {
+    // Added async
     if (!_deviceConnected) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Can't play without IOT Device connected and ready"),
+          content: Text("Can't play without IOT Device connected"),
         ),
       );
-    } else {
-      final state = _heartbeatKey.currentState;
-      if (state != null) {
-        if (_recordStatus == RecordStatus.idle) {
-          setState(() {
-            _recordStatus = RecordStatus.recording;
-            _startStopwatch();
-          });
-        } else if (_recordStatus == RecordStatus.recording) {
-          setState(() {
-            _recordStatus = RecordStatus.recorded;
-            _pauseStopwatch(); // <<< PAUSE STOPWATCH (or stop/reset, depending on your flow)
-          });
-        } else if (_recordStatus == RecordStatus.recorded) {
-          setState(() {
-            _recordStatus = RecordStatus.sent;
-            _resetStopwatch();
-          });
-          showFullModal(context);
+      return;
+    }
+
+    final state = _heartbeatKey.currentState;
+    final deviceStr = _currentDeviceId.toString();
+
+    if (state != null) {
+      if (_recordStatus == RecordStatus.idle) {
+        // --- 1. Get the Token First ---
+        final token = await tokenService.readToken();
+
+        if (token == null || token.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Authentication error. Please login again."),
+            ),
+          );
+          return;
         }
-        state.toggleAnimation();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Heartbeat animation error")),
-        );
+
+        // --- 2. Update UI ---
+        setState(() {
+          _recordStatus = RecordStatus.recording;
+          _startStopwatch();
+        });
+
+        // --- 3. Send MQTT Commands ---
+        // Ensure we send "Bearer " if your Go backend expects it
+        _mqttService.sendAuthToken(deviceStr, token);
+        _mqttService.startRecording(deviceStr);
+      } else if (_recordStatus == RecordStatus.recording) {
+        // STOP ACTION
+        setState(() {
+          _recordStatus = RecordStatus.recorded;
+          _pauseStopwatch();
+        });
+
+        _mqttService.stopRecording(deviceStr);
+      } else if (_recordStatus == RecordStatus.recorded) {
+        setState(() {
+          _recordStatus = RecordStatus.sent;
+          _resetStopwatch();
+        });
+        showFullModal(context);
       }
+      state.toggleAnimation();
     }
   }
 
@@ -475,46 +506,61 @@ class _RecordScreenState extends State<RecordScreen> {
   }
 
   void showFullModal(BuildContext context) {
-    late String analyzeState = "recorded";
-    if (analyzeState == "recorded") {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Recording Complete'),
-            content: const Text(
-              'Your heartbeat audio has been saved successfully.',
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('Analyze Now'),
+    showDialog(
+      context: context,
+      barrierDismissible: false, // User must click OK to acknowledge
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: Row(
+            children: [
+              const Icon(Icons.cloud_done, color: Colors.green, size: 28),
+              const SizedBox(width: 12),
+              const Text('Upload Success'),
+            ],
+          ),
+          content: const Text(
+            'Your heartbeat recording has been successfully uploaded to the server.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: <Widget>[
+            SizedBox(
+              width: double.infinity, // Make button full width
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: const Text(
+                  'OK',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 onPressed: () {
-                  // use sample audio file for testing upload
-                  _heartbeatRepository
-                      .uploadHeartbeatData("assets/audio/heartbeat_sample.wav")
-                      .then((response) {
-                        if (kDebugMode) {
-                          print('Upload successful: ${response.message}');
-                        }
-                        if (kDebugMode) {
-                          print('Inspection id: ${response.inspectionId}');
-                        }
-                        analyzeState = "sent";
-                      })
-                      .catchError((error) {
-                        if (kDebugMode) {
-                          print('Upload failed: $error');
-                        }
-                      });
+                  // 1. Close the dialog
+                  Navigator.pop(context);
+
+                  // 2. Reset the record screen state to idle for the next measurement
+                  setState(() {
+                    _recordStatus = RecordStatus.idle;
+                    analyzeState = "idle";
+                  });
+
+                  // Optional: You could navigate them back to the home or history page here
+                  // widget.backtohome();
                 },
               ),
-            ],
-          );
-        },
-      );
-    } else if (analyzeState == "sent") {
-      // use websocket to check analysis result
-    }
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 
