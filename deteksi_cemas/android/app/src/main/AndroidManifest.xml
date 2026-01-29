@@ -3,7 +3,7 @@
     <application
         android:label="deteksi_cemas"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/launcher_icon"
         android:usesCleartextTraffic="true">
         <meta-data
         android:name="com.google.android.gms.common.api.GoogleSignInOptionsExtension"
