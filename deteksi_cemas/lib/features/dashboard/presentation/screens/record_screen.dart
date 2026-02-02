@@ -6,6 +6,7 @@ import 'package:deteksi_cemas/features/dashboard/domain/repository/heartbeat_rep
 import 'package:deteksi_cemas/features/dashboard/domain/services/mqtt_service.dart';
 import 'package:deteksi_cemas/features/dashboard/domain/services/token_service.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/heartbeat_animation.dart';
+import 'package:deteksi_cemas/theme/color_list.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -77,7 +78,7 @@ class _RecordScreenState extends State<RecordScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.red.shade400,
+                  color: ColorList.aquaCyan,
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(20),
                     bottomRight: Radius.circular(20),

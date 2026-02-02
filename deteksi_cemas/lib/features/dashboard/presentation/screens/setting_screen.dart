@@ -3,6 +3,7 @@ import 'package:deteksi_cemas/features/dashboard/domain/repository/user_reposito
 import 'package:deteksi_cemas/features/dashboard/domain/services/token_service.dart';
 import 'package:deteksi_cemas/l10n/app_localizations.dart';
 import 'package:deteksi_cemas/language/localecubit.dart';
+import 'package:deteksi_cemas/theme/color_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -246,7 +247,7 @@ class _SettingScreenState extends State<SettingScreen> {
             icon: const Icon(Icons.logout),
             label: const Text('Log Out'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade400,
+              backgroundColor: ColorList.roseDusty,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 15),
               shape: RoundedRectangleBorder(

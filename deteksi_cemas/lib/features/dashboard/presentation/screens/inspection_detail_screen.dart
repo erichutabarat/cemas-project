@@ -215,8 +215,9 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
                         if (maxDuration <= 0) maxDuration = 1.0;
 
                         // Force sliderValue to stay within [0, maxDuration]
-                        if (sliderValue > maxDuration)
+                        if (sliderValue > maxDuration) {
                           sliderValue = maxDuration;
+                        }
                         if (sliderValue < 0) sliderValue = 0;
 
                         return Column(

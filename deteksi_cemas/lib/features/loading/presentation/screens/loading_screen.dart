@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'package:deteksi_cemas/features/onboarding/services/onboarding_services.dart';
+import 'package:deteksi_cemas/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -16,6 +17,8 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
+  // app theme
+  final AppTheme _appTheme = AppTheme();
   // app version
   final String _appVersion = dotenv.env['APP_VERSION'] ?? '1.0.0';
   @override
@@ -42,13 +45,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
     return Scaffold(
       body: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [LoadingScreen._colorPink, LoadingScreen._colorOrange],
-          ),
-        ),
+        decoration: BoxDecoration(gradient: AppTheme.softChillReversed),
         child: SafeArea(
           // Ensures content doesn't hit the notch/bottom bar
           child: Column(

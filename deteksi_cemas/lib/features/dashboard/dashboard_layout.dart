@@ -4,6 +4,7 @@ import 'package:deteksi_cemas/features/dashboard/presentation/screens/home_scree
 import 'package:deteksi_cemas/features/dashboard/presentation/screens/record_screen.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/screens/setting_screen.dart';
 import 'package:deteksi_cemas/features/dashboard/domain/services/token_service.dart';
+import 'package:deteksi_cemas/theme/color_list.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -231,8 +232,8 @@ class _DashboardLayoutState extends State<DashboardLayout>
                 backgroundColor: Colors.white,
                 elevation: 4.0,
 
-                selectedItemColor: Colors.amber[800],
-                unselectedItemColor: Colors.blueGrey[400],
+                selectedItemColor: ColorList.emeraldBLue,
+                unselectedItemColor: ColorList.lavenderGray,
 
                 selectedFontSize: 0.0,
                 unselectedFontSize: 0.0,
@@ -273,13 +274,13 @@ class _DashboardLayoutState extends State<DashboardLayout>
           position:
               _fabSlideAnimation, // The animation that drives the vertical movement
           child: FloatingActionButton(
-            backgroundColor: Colors.red.shade400,
+            backgroundColor: ColorList.aquaCyan,
             onPressed: () {
               _onItemTapped(2);
             },
             tooltip: 'Record Page',
             shape: const CircleBorder(),
-            child: const Icon(Icons.mic_rounded, color: Colors.black54),
+            child: const Icon(Icons.mic_rounded, color: Colors.white),
           ),
         ),
       ),

@@ -5,6 +5,7 @@ import 'package:deteksi_cemas/features/dashboard/domain/repository/recommendatio
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/article_card.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/header_card.dart';
 import 'package:deteksi_cemas/l10n/app_localizations.dart';
+import 'package:deteksi_cemas/theme/color_list.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -92,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final l10n = AppLocalizations.of(context)!;
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
-        statusBarColor: Colors.red.shade400,
+        statusBarColor: ColorList.aquaCyan,
         statusBarIconBrightness: Brightness.light,
       ),
     );
@@ -188,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: _quickItem(
                     icon: Icons.auto_graph_rounded,
                     label: "Heartbeat Analyze",
-                    color: Colors.red.shade300,
+                    color: ColorList.emeraldBLue,
                     onTap: () {
                       if (widget.goToPage != null) {
                         widget.goToPage!(2); // Navigate to RecordScreen
@@ -201,7 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: _quickItem(
                     icon: Icons.assignment_rounded,
                     label: "Anxiety Survey (HARS)",
-                    color: Colors.red.shade300,
+                    color: ColorList.emeraldBLue,
                     onTap: () {
                       if (widget.goToPage != null) {
                         widget.goToPage!(3); // Navigate to HistoryScreen
@@ -218,7 +219,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: _quickItem(
                     icon: Icons.history_rounded,
                     label: "User History",
-                    color: Colors.red.shade300,
+                    color: ColorList.emeraldBLue,
                     onTap: () {
                       if (widget.goToPage != null) {
                         widget.goToPage!(1); // Navigate to HistoryScreen
@@ -231,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: _quickItem(
                     icon: Icons.today,
                     label: "Today Activity Planner",
-                    color: Colors.red.shade300,
+                    color: ColorList.emeraldBLue,
                     onTap: () {
                       // TODO: Implement navigation to Activity Planner Screen
                     },
@@ -257,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 18),
         decoration: BoxDecoration(
-          color: Colors.grey.shade50,
+          color: ColorList.lavenderGray.withOpacity(0.2),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.grey.shade200),
         ),

@@ -3,6 +3,8 @@ import 'package:deteksi_cemas/features/auth/presentation/states/register_event.d
 import 'package:deteksi_cemas/features/auth/presentation/states/register_state.dart';
 import 'package:deteksi_cemas/features/auth/presentation/widget/appname_sketch.dart';
 import 'package:deteksi_cemas/l10n/app_localizations.dart';
+import 'package:deteksi_cemas/theme/app_theme.dart';
+import 'package:deteksi_cemas/theme/color_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -85,11 +87,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Container(
                   height: blueContainerHeight,
                   decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFFff0f7b), Color(0xFFf89b29)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    gradient: AppTheme.softChillReversed,
                   ),
                   child: appNameSketch(),
                 ),
@@ -245,7 +243,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
                               ),
-                              backgroundColor: const Color(0xFFff0f7b),
+                              backgroundColor: ColorList.emeraldBLue,
                               foregroundColor: Colors.white,
                             ),
                             child: isLoading

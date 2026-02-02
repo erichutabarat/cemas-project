@@ -8,6 +8,8 @@ import 'package:deteksi_cemas/features/auth/presentation/states/auth_state.dart'
 // Ensure this import points to the file created above
 import 'package:deteksi_cemas/features/onboarding/domain/repository/backend_repository.dart';
 import 'package:deteksi_cemas/l10n/app_localizations.dart';
+import 'package:deteksi_cemas/theme/app_theme.dart';
+import 'package:deteksi_cemas/theme/color_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:deteksi_cemas/features/auth/presentation/widget/appname_sketch.dart';
@@ -105,13 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
               // 1. Background Gradient
               Container(
                 height: blueContainerHeight,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [_colorPink, _colorOrange],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
+                decoration: BoxDecoration(gradient: AppTheme.softChillReversed),
                 child: appNameSketch(),
               ),
 
@@ -183,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(30),
                                   ),
-                                  backgroundColor: _colorPink,
+                                  backgroundColor: ColorList.emeraldBLue,
                                   foregroundColor: Colors.white,
                                 ),
                                 child: const Text(
@@ -225,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(40),
                           ),
-                          side: BorderSide(color: _colorPink),
+                          side: BorderSide(color: ColorList.emeraldBLue),
                         ),
                         onPressed: () {
                           // Simply navigate to the processing screen
@@ -248,7 +244,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Text(
                               'Sign in with Google',
                               style: TextStyle(
-                                color: _colorPink,
+                                color: ColorList.deepBlue,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                               ),

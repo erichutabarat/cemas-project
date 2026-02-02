@@ -4,6 +4,8 @@ import 'package:deteksi_cemas/features/onboarding/onboarding_controller.dart';
 import 'package:deteksi_cemas/features/onboarding/services/onboarding_services.dart';
 import 'package:deteksi_cemas/l10n/app_localizations.dart';
 import 'package:deteksi_cemas/features/onboarding/data/onboarding_items.dart'; // Keep the class definition
+import 'package:deteksi_cemas/theme/app_theme.dart';
+import 'package:deteksi_cemas/theme/color_list.dart';
 import 'package:flutter/material.dart';
 import '../widgets/onboarding_content.dart';
 import '../widgets/onboarding_dots.dart';
@@ -55,13 +57,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFff0f7b), Color(0xFFf89b29)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
+        decoration: BoxDecoration(gradient: AppTheme.softChillReversed),
         child: Column(
           children: [
             Expanded(
@@ -100,8 +96,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF3B2A5F),
+                    backgroundColor: ColorList.aquaCyan,
+                    foregroundColor: Colors.white,
                     elevation: 3,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(

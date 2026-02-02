@@ -6,6 +6,7 @@ import 'package:deteksi_cemas/features/survey/data/repository/hars_questions.dar
 import 'package:deteksi_cemas/features/survey/presentation/screens/hars_result_screen.dart';
 import 'package:deteksi_cemas/features/survey/presentation/screens/hars_survey_screen.dart';
 import 'package:deteksi_cemas/l10n/app_localizations.dart';
+import 'package:deteksi_cemas/theme/color_list.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -42,7 +43,7 @@ class _ArticleScreenState extends State<ArticleScreen> {
             Container(
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.red.shade400,
+                color: ColorList.aquaCyan,
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(20),
                   bottomRight: Radius.circular(20),

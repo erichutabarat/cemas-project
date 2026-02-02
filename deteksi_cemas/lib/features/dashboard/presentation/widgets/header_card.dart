@@ -1,6 +1,7 @@
 // ignore_for_file: sized_box_for_whitespace, deprecated_member_use
 
 import 'package:deteksi_cemas/l10n/app_localizations.dart';
+import 'package:deteksi_cemas/theme/color_list.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -26,6 +27,7 @@ class HeaderCard extends StatelessWidget {
           Container(
             height: headerHeight - (cardHeight / 2),
             decoration: BoxDecoration(
+              color: ColorList.aquaCyan,
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(20),
                 bottomRight: Radius.circular(20),
@@ -38,11 +40,6 @@ class HeaderCard extends StatelessWidget {
                   offset: const Offset(0, 3),
                 ),
               ],
-              gradient: LinearGradient(
-                colors: [Colors.red.shade400, Colors.red.shade300],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
             ),
           ),
 
