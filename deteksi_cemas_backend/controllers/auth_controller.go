@@ -1,11 +1,15 @@
 package controllers
 
 import (
+	"os"
+    "context"
 	"net/http"
 	"log"
 	"strings"
 	"github.com/gin-gonic/gin"
+    "github.com/joho/godotenv"
 	"gorm.io/gorm"
+	"google.golang.org/api/idtoken"
 
 	"deteksi_cemas_backend/models" // Using the user-provided module path
 	"deteksi_cemas_backend/utils"  // Using the user-provided module path
@@ -127,6 +131,72 @@ func (ac *AuthController) Login(c *gin.Context) {
 	})
 }
 
+// GoogleLogin handles the verification of Google ID Tokens
+func (ac *AuthController) GoogleLogin(c *gin.Context) {
+	_ = godotenv.Load()
+    var input struct {
+        IDToken string `json:"id_token" binding:"required"`
+    }
+
+    if err := c.ShouldBindJSON(&input); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "ID Token is required"})
+        return
+    }
+
+    // Fetch Client ID from environment
+    googleClientID := os.Getenv("GOOGLE_CLIENT_ID")
+	if googleClientID == "" {
+        log.Println("ERROR: GOOGLE_CLIENT_ID not set in .env")
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Server configuration error"})
+        return
+    }
+    // 1. Verify the token with Google using the env variable
+    payload, err := idtoken.Validate(context.Background(), input.IDToken, googleClientID)
+    if err != nil {
+        log.Printf("Google Token Validation Error: %v", err)
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Google token"})
+        return
+    }
+
+    // 2. Extract info from Google Payload
+    email := payload.Claims["email"].(string)
+    name := payload.Claims["name"].(string)
+
+    // 3. Check if user exists in database
+    var user models.User
+    err = ac.DB.Where("email = ?", email).First(&user).Error
+
+    if err != nil {
+        if err == gorm.ErrRecordNotFound {
+            // USER NOT FOUND: Return data so Flutter can show registration form
+            c.JSON(http.StatusOK, gin.H{
+                "registered": false,
+                "email":      email,
+                "name":       name,
+                "message":    "User not found, please register",
+            })
+            return
+        }
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+        return
+    }
+
+    // 4. USER EXISTS: Generate your system's JWT (Login)
+    token, err := utils.GenerateJWT(user.ID)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "registered": true,
+        "token":      token,
+        "user_id":    user.ID,
+        "name":       user.Name,
+        "message":    "Login successful",
+    })
+}
+
 // Helper function to check for MySQL Duplicate Entry error
 func isDuplicateEntryError(err error) bool {
     if err == nil {
@@ -138,5 +208,6 @@ func isDuplicateEntryError(err error) bool {
 
 // Low-level string check to avoid complex type assertions during load test
 func appendErrorCheck(err error, code string) bool {
+    // Alternatively, just add "strings" to your imports at the top
     return strings.Contains(err.Error(), code)
 }

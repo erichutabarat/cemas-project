@@ -25,6 +25,13 @@ func SetupAssessmentRoutes(router *gin.Engine, db *gorm.DB) {
             
             // Path: /api/assessment/result/:id
             assessment.DELETE("/result/:id", assessmentController.DeleteResult)
+
+            // Path: /api/assessment/consent
+            assessment.POST("/consent", assessmentController.SubmitInformedConsent)
+
+            // Path: /api/assessment/consent
+            assessment.GET("/consent", assessmentController.GetInformedConsent)
+
         }
     }
 }

@@ -19,7 +19,7 @@ func NewAssessmentController(db *gorm.DB) *AssessmentController	{
 
 func (ac *AssessmentController) GetQuestions(c *gin.Context){
 	var questions []models.HarsQuestions
-	if err := ac.DB.Find(&questions).Error; err != nil {
+	if err := ac.DB.Preload("Options").Find(&questions).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve questions"})
 		return
 	}
@@ -81,4 +81,64 @@ func (ac *AssessmentController) DeleteResult(c *gin.Context) {
     }
 
     c.JSON(http.StatusOK, gin.H{"message": "Assessment result deleted successfully"})
+}
+
+func (ac *AssessmentController) GetInformedConsent(c *gin.Context) {
+    userID, exists := c.Get("userID")
+    if !exists {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+        return
+    }
+
+    var consent models.InformedConsent
+    err := ac.DB.Where("user_id = ?", userID).First(&consent).Error
+
+    if err != nil {
+        // If the record simply doesn't exist
+        if err == gorm.ErrRecordNotFound {
+            c.JSON(http.StatusNotFound, gin.H{
+                "message": "No informed consent found for this user",
+                "exists":  false,
+            })
+            return
+        }
+
+        // If it's a real database crash/connection issue
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error occurred"})
+        return
+    }
+
+    // Success
+    c.JSON(http.StatusOK, gin.H{
+        "exists":           true,
+        "informed_consent": consent,
+    })
+}
+
+func (ac *AssessmentController) SubmitInformedConsent(c *gin.Context) {
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	var input struct {
+		PhoneNumber string `json:"phone_number" binding:"required"`
+		Consent     bool   `json:"consent" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input format or missing fields", "details": err.Error()})
+		return
+	}
+	
+	consent := models.InformedConsent{
+		// First assert as int, then convert to uint
+		UserID:      uint(userID.(int)), 
+		PhoneNumber: input.PhoneNumber,
+		Consent:     input.Consent,
+	}
+	if err := ac.DB.Create(&consent).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to submit informed consent"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Informed consent submitted successfully", "informed_consent": consent})
 }

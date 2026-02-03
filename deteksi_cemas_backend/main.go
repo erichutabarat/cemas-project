@@ -18,6 +18,8 @@ func main() {
         &models.User{},
         &models.HarsResults{},
         &models.HarsQuestions{},
+        &models.HarsOptions{},
+        &models.InformedConsent{},
         &models.Inspection{},
         &models.Result{},
         &models.RecommendationActivity{},
@@ -25,6 +27,9 @@ func main() {
     )
 
     migrations.SeedHarsQuestions(db)
+
+    // Seed Options second (Child)
+    migrations.SeedHarsOptions(db)
 
     // -----------------------------------------------------------
     // OPTIMASI PERFORMA LOAD TEST
@@ -68,7 +73,6 @@ func main() {
     routes.SetupUserRoutes(r, db)
     routes.SetupHeartbeatRoutes(r, db)
     routes.SetupRecommendationRoutes(r, db)
-    routes.SetupAudioRoutes(r, db)
 
     // 4. Run server
     log.Println("Server listening on :8080")

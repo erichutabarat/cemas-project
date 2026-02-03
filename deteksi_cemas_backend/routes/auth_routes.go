@@ -19,5 +19,7 @@ func SetupAuthRoutes(router *gin.Engine, db *gorm.DB) {
 		auth.POST("/register", authController.Register)
 		// POST /api/auth/login
 		auth.POST("/login", authController.Login)
+		// POST /api/auth/google-login
+		auth.POST("/google-login", authController.GoogleLogin)
 	}
 }
