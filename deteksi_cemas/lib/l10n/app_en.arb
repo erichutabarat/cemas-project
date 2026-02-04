@@ -2,6 +2,7 @@
   "@@locale": "en",
   "getStarted": "Get Started",
   "next": "Next",
+  "previous": "Previous",
   "onboardingTitle1": "Anxiety Detection",
   "onboardingDesc1": "Welcome to Deteksi Cemas, where you can detect your anxiety levels early.",
   "onboardingTitle2": "Check Heartbeat",
@@ -30,5 +31,13 @@
   "account_and_app": "Account & App",
   "privacy_policy": "Privacy Policy",
   "terms_service": "Terms of Service",
-  "about_app": "About App"
+  "about_app": "About App",
+  "questionLabel": "Question",
+  "textOf": "of",
+  "selectapply": "Have you experienced any of the following symptoms that appeared suddenly under certain conditions or circumstances? If so, please check the box next to the symptoms you are experiencing.",
+  "submitsurvey": "Submit Survey",
+  "pleaseselect": "Please select one before continuing.",
+  "harsresult": "HARS Survey Results",
+  "anxietylevelis": "Your anxiety level is",
+  "whatthismeans": "What this means"
 }

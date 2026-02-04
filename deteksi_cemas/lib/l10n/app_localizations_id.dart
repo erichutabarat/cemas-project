@@ -15,6 +15,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get next => 'Lanjut';
 
   @override
+  String get previous => 'Sebelumnya';
+
+  @override
   String get onboardingTitle1 => 'Deteksi Cemas';
 
   @override
@@ -100,4 +103,28 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get about_app => 'Tentang Aplikasi';
+
+  @override
+  String get questionLabel => 'Pertanyaan';
+
+  @override
+  String get textOf => 'dari';
+
+  @override
+  String get selectapply => 'Apakah Anda mengalami gejala-gejala berikut yang muncul secara tiba-tiba pada kondisi atau situasi tertentu? Apabila ya, silakan beri tanda centang pada gejala yang dialami.';
+
+  @override
+  String get submitsurvey => 'Kirim Survei';
+
+  @override
+  String get pleaseselect => 'Silahkan pilih salah satu sebelum melanjutkan';
+
+  @override
+  String get harsresult => 'Hasil Survei HARS';
+
+  @override
+  String get anxietylevelis => 'Tingkat kecemasan anda adalah';
+
+  @override
+  String get whatthismeans => 'Apa artinya ini';
 }

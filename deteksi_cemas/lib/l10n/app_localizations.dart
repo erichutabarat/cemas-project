@@ -107,6 +107,12 @@ abstract class AppLocalizations {
   /// **'Next'**
   String get next;
 
+  /// No description provided for @previous.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get previous;
+
   /// No description provided for @onboardingTitle1.
   ///
   /// In en, this message translates to:
@@ -280,6 +286,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'About App'**
   String get about_app;
+
+  /// No description provided for @questionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Question'**
+  String get questionLabel;
+
+  /// No description provided for @textOf.
+  ///
+  /// In en, this message translates to:
+  /// **'of'**
+  String get textOf;
+
+  /// No description provided for @selectapply.
+  ///
+  /// In en, this message translates to:
+  /// **'Have you experienced any of the following symptoms that appeared suddenly under certain conditions or circumstances? If so, please check the box next to the symptoms you are experiencing.'**
+  String get selectapply;
+
+  /// No description provided for @submitsurvey.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Survey'**
+  String get submitsurvey;
+
+  /// No description provided for @pleaseselect.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select one before continuing.'**
+  String get pleaseselect;
+
+  /// No description provided for @harsresult.
+  ///
+  /// In en, this message translates to:
+  /// **'HARS Survey Results'**
+  String get harsresult;
+
+  /// No description provided for @anxietylevelis.
+  ///
+  /// In en, this message translates to:
+  /// **'Your anxiety level is'**
+  String get anxietylevelis;
+
+  /// No description provided for @whatthismeans.
+  ///
+  /// In en, this message translates to:
+  /// **'What this means'**
+  String get whatthismeans;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

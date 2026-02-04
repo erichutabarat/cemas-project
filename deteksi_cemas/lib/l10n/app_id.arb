@@ -2,6 +2,7 @@
   "@@locale": "id",
   "getStarted": "Mulai Sekarang",
   "next": "Lanjut",
+  "previous": "Sebelumnya",
   "onboardingTitle1": "Deteksi Cemas",
   "onboardingDesc1": "Selamat datang di Deteksi Cemas, di mana Anda dapat mendeteksi tingkat kecemasan Anda sejak dini.",
   "onboardingTitle2": "Periksa Detak Jantung",
@@ -30,5 +31,13 @@
   "account_and_app": "Akun dan Aplikasi",
   "privacy_policy": "Kebijakan Privasi",
   "terms_service": "Ketentuan Layanan",
-  "about_app": "Tentang Aplikasi"
+  "about_app": "Tentang Aplikasi",
+  "questionLabel": "Pertanyaan",
+  "textOf": "dari",
+  "selectapply": "Apakah Anda mengalami gejala-gejala berikut yang muncul secara tiba-tiba pada kondisi atau situasi tertentu? Apabila ya, silakan beri tanda centang pada gejala yang dialami.",
+  "submitsurvey": "Kirim Survei",
+  "pleaseselect": "Silahkan pilih salah satu sebelum melanjutkan",
+  "harsresult": "Hasil Survei HARS",
+  "anxietylevelis": "Tingkat kecemasan anda adalah",
+  "whatthismeans": "Apa artinya ini"
 }

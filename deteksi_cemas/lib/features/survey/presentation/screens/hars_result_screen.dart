@@ -1,4 +1,5 @@
 import 'package:deteksi_cemas/features/survey/data/models/assessment_results_models.dart';
+import 'package:deteksi_cemas/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 // Ensure this path is correct for AssessmentResult
 
@@ -50,6 +51,7 @@ class _HarsResultScreenState extends State<HarsResultScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final Color levelColor = _getAnxietyLevelColor(widget.result!.anxietyLevel);
     final String descriptiveMessage = _getDescriptiveMessage(
       widget.result!.anxietyLevel,
@@ -103,7 +105,7 @@ class _HarsResultScreenState extends State<HarsResultScreen> {
                   child: Column(
                     children: [
                       Text(
-                        'Your Anxiety Level Is:',
+                        '${l10n.anxietylevelis}:',
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(color: Colors.grey.shade700),
                         textAlign: TextAlign.center,
@@ -129,7 +131,7 @@ class _HarsResultScreenState extends State<HarsResultScreen> {
               _buildResultRow(
                 context,
                 'Total Score',
-                '${widget.result?.totalScore} / 56', // Assuming 56 is the max HARS score
+                '${widget.result?.totalScore} / 67', // Assuming 56 is the max HARS score
                 Icons.score,
                 Theme.of(context).primaryColor,
               ),
@@ -147,7 +149,7 @@ class _HarsResultScreenState extends State<HarsResultScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'What This Means:',
+                        '${l10n.whatthismeans}:',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),

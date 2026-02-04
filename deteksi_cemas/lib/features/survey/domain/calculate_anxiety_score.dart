@@ -1,17 +1,25 @@
 import 'package:deteksi_cemas/features/survey/data/models/assessment_questions_models.dart';
 
-int calulateMxPossibleScore(int totalQuestions) {
-  // list of questions
-  const int maxScorePerQuestion = 4;
-  return totalQuestions * maxScorePerQuestion;
+int calculateMaxPossibleScore(List<AssessmentQuestion> questions) {
+  int maxScore = 0;
+  for (var question in questions) {
+    for (var option in question.options) {
+      // Sum the score of every possible symptom across all questions
+      maxScore += option.score;
+    }
+  }
+  return maxScore;
 }
 
 String getAnxietyLevel(int totalScore, List<AssessmentQuestion> questions) {
-  int maxPossibleScore = calulateMxPossibleScore(questions.length);
+  // Get the dynamic total based on the actual options available
+  int maxPossibleScore = calculateMaxPossibleScore(questions);
+
   if (maxPossibleScore == 0) return "No questions to assess";
+
   double scorePercentage = (totalScore / maxPossibleScore) * 100;
 
-  // anxiety level
+  // Anxiety level logic remains the same, but now based on a dynamic 100%
   if (scorePercentage <= 30) {
     return "No Anxiety";
   } else if (scorePercentage <= 45) {

@@ -15,6 +15,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get next => 'Next';
 
   @override
+  String get previous => 'Previous';
+
+  @override
   String get onboardingTitle1 => 'Anxiety Detection';
 
   @override
@@ -100,4 +103,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get about_app => 'About App';
+
+  @override
+  String get questionLabel => 'Question';
+
+  @override
+  String get textOf => 'of';
+
+  @override
+  String get selectapply => 'Have you experienced any of the following symptoms that appeared suddenly under certain conditions or circumstances? If so, please check the box next to the symptoms you are experiencing.';
+
+  @override
+  String get submitsurvey => 'Submit Survey';
+
+  @override
+  String get pleaseselect => 'Please select one before continuing.';
+
+  @override
+  String get harsresult => 'HARS Survey Results';
+
+  @override
+  String get anxietylevelis => 'Your anxiety level is';
+
+  @override
+  String get whatthismeans => 'What this means';
 }

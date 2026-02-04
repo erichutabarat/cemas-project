@@ -1,17 +1,15 @@
 // ignore_for_file: deprecated_member_use
 
-import 'package:deteksi_cemas/features/survey/data/models/answer_requests_models.dart';
 import 'package:deteksi_cemas/features/survey/data/models/assessment_questions_models.dart';
 import 'package:deteksi_cemas/features/survey/data/models/assessment_results_models.dart';
-// NOTE: Assuming HarsQuestionsRepository is correctly imported here
 import 'package:deteksi_cemas/features/survey/data/repository/hars_questions.dart';
 import 'package:deteksi_cemas/features/survey/domain/calculate_anxiety_score.dart';
 import 'package:deteksi_cemas/features/survey/presentation/screens/hars_result_screen.dart';
+import 'package:deteksi_cemas/l10n/app_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class HarsSurveyScreen extends StatefulWidget {
-  // Inject the repository via the constructor
   final HarsQuestionsRepository? surveyRepository;
   const HarsSurveyScreen({super.key, this.surveyRepository});
 
@@ -21,45 +19,34 @@ class HarsSurveyScreen extends StatefulWidget {
 
 class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
   List<AssessmentQuestion>? _questions;
-  // Initialize _answers as empty until questions are loaded
-  List<AnswerRequests> _answers = [];
+
+  // Stores selected option IDs for each question index
+  // Format: { questionIndex: [optionId1, optionId2, ...] }
+  final Map<int, List<int>> _selectedOptionIds = {};
+
   bool _isLoading = true;
-  bool _hasError = false; // Added error state flag
-
+  bool _hasError = false;
   int _currentQuestionIndex = 0;
-
-  final List<String> _scoreLabels = [
-    "0: Not present",
-    "1: Mild",
-    "2: Moderate",
-    "3: Severe",
-    "4: Very Severe / Incapacitating",
-  ];
 
   @override
   void initState() {
     super.initState();
-    // Only call loadQuestions in initState
     _loadQuestions();
-    // We remove _initializeAnswers() here because it depends on _questions being non-null.
   }
 
   Future<void> _loadQuestions() async {
     try {
       final fetchedQuestions = await widget.surveyRepository
           ?.fetchHarsQuestions();
-
       setState(() {
         _questions = fetchedQuestions;
-        // 1. Initialize answers ONLY after questions are successfully loaded
-        _initializeAnswers();
         _isLoading = false;
         _hasError = false;
       });
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _hasError = true; // Set error flag
+        _hasError = true;
       });
       if (mounted) {
         ScaffoldMessenger.of(
@@ -69,19 +56,8 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
     }
   }
 
-  // 2. Initialize answers using the loaded _questions! list
-  void _initializeAnswers() {
-    if (_questions != null) {
-      _answers = _questions!
-          .map((question) => AnswerRequests(questionId: question.id, score: -1))
-          .toList();
-    }
-    // If _questions is null, _answers remains [] (from initial definition)
-  }
-
   void _previousQuestion() {
-    if (_questions == null || _isLoading) return; // Safety check
-
+    if (_questions == null || _isLoading) return;
     if (_currentQuestionIndex > 0) {
       setState(() {
         _currentQuestionIndex--;
@@ -89,70 +65,70 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
     }
   }
 
-  void _nextQuestion() {
-    // Safety check: Cannot proceed if loading, in error state, or no questions
+  void _nextQuestion(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (_questions == null || _isLoading || _hasError) return;
 
-    // Check if an answer has been selected for the current question
-    if (_answers[_currentQuestionIndex].score == -1) {
+    // VALIDATION: Check if user has selected at least one option for the current question
+    final currentSelections = _selectedOptionIds[_currentQuestionIndex] ?? [];
+    if (currentSelections.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select an answer to proceed.'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text(l10n.pleaseselect),
+          duration: const Duration(seconds: 2),
         ),
       );
-      return; // Prevent moving forward without an answer
+      return;
     }
-
-    // 3. Removed incorrect re-initialization of _answers here!
 
     if (_currentQuestionIndex < _questions!.length - 1) {
       setState(() {
         _currentQuestionIndex++;
       });
     } else {
-      // Last question, submit survey
       _submitSurvey();
     }
+  }
+
+  int _calculateTotalScore() {
+    if (_questions == null) return 0;
+    int total = 0;
+
+    _selectedOptionIds.forEach((questionIndex, selectedIds) {
+      final question = _questions![questionIndex];
+      for (var id in selectedIds) {
+        // Find the option object that matches the selected ID to get its score
+        final option = question.options.firstWhere((opt) => opt.id == id);
+        total += option.score;
+      }
+    });
+    return total;
   }
 
   void _submitSurvey() {
     if (_questions == null || _isLoading) return;
 
-    if (kDebugMode) {
-      print('Submitting survey with answers:');
-    }
-
-    // Calculation requires non-null _questions list to pass to getAnxietyLevel
-    String anxietyLevel = getAnxietyLevel(calculateTotalScore(), _questions!);
+    final int totalScore = _calculateTotalScore();
+    final String anxietyLevel = getAnxietyLevel(totalScore, _questions!);
 
     AssessmentResult finalResult = AssessmentResult(
-      totalScore: calculateTotalScore(),
+      totalScore: totalScore,
       anxietyLevel: anxietyLevel,
       id: -1,
       createdAt: null,
     );
 
-    // Send to database
     widget.surveyRepository
         ?.fetchHarsSubmit(finalResult)
         .then((success) {
-          if (success) {
-            if (kDebugMode) {
-              print('Survey submitted successfully.');
-            }
-          } else {
-            if (kDebugMode) {
-              print('Survey submission failed.');
-            }
+          if (kDebugMode) {
+            print(success ? 'Survey submitted' : 'Submission failed');
           }
         })
         .catchError((error) {
-          if (kDebugMode) {
-            print('Error during survey submission: $error');
-          }
+          if (kDebugMode) print('Submission error: $error');
         });
-    // Use pushReplacement to prevent user from going back to the survey
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -161,21 +137,11 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
     );
   }
 
-  int calculateTotalScore() {
-    if (_questions == null) return 0; // Safety check
-
-    int total = 0;
-    for (var answer in _answers) {
-      if (answer.score != -1) {
-        total += answer.score;
-      }
-    }
-    return total;
-  }
-
   @override
   Widget build(BuildContext context) {
-    // 4. Handle Loading and Error states gracefully
+    final l10n = AppLocalizations.of(context)!;
+    final currentLocale = Localizations.localeOf(context).languageCode;
+
     if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -187,10 +153,7 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
-                'Failed to load questions or no questions available.',
-                textAlign: TextAlign.center,
-              ),
+              const Text('Failed to load questions.'),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _loadQuestions,
@@ -202,29 +165,25 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
       );
     }
 
-    // Now we can safely use _questions!
-    final AssessmentQuestion currentQuestion =
-        _questions![_currentQuestionIndex];
-
-    final int? currentSelectedScore =
-        _answers[_currentQuestionIndex].score == -1
-        ? null
-        : _answers[_currentQuestionIndex].score;
-
+    final currentQuestion = _questions![_currentQuestionIndex];
     final bool isFirstQuestion = _currentQuestionIndex == 0;
     final bool isLastQuestion = _currentQuestionIndex == _questions!.length - 1;
+
+    // Get the list of selected IDs for the current view
+    final List<int> selectedIds =
+        _selectedOptionIds[_currentQuestionIndex] ?? [];
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('HARS Survey'),
         centerTitle: true,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       ),
       body: SafeArea(
         child: Column(
           children: [
-            // Progress Indicator
+            // Progress Bar
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 20.0,
@@ -233,83 +192,87 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
               child: Column(
                 children: [
                   Text(
-                    "Question ${_currentQuestionIndex + 1} of ${_questions!.length}",
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.grey.shade700,
-                    ),
+                    "${l10n.questionLabel} ${_currentQuestionIndex + 1} ${l10n.textOf} ${_questions!.length}",
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
                   LinearProgressIndicator(
                     value: (_currentQuestionIndex + 1) / _questions!.length,
-                    backgroundColor: Colors.grey.shade300,
-                    color: Theme.of(context).primaryColor,
-                    minHeight: 8,
                     borderRadius: BorderRadius.circular(10),
+                    minHeight: 8,
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
 
-            // Question Card
+            // Question & Options Card
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Card(
-                  elevation: 6,
+                  elevation: 4,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(24.0),
+                    padding: const EdgeInsets.all(20.0),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Question ${_currentQuestionIndex + 1}',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Colors.grey.shade600,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          currentQuestion.question,
+                          currentLocale == "en"
+                              ? currentQuestion.question
+                              : currentQuestion.questionId,
                           style: Theme.of(context).textTheme.headlineSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                          textAlign: TextAlign.start,
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 10),
+                        Text(
+                          l10n.selectapply,
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const Divider(height: 30),
 
-                        // Answer Options
+                        // Options List
                         Expanded(
                           child: ListView.builder(
-                            itemCount: _scoreLabels.length,
+                            itemCount: currentQuestion.options.length,
                             itemBuilder: (context, index) {
-                              return RadioListTile<int>(
-                                value: index,
-                                groupValue: currentSelectedScore,
-                                onChanged: (int? value) {
-                                  if (value != null) {
-                                    setState(() {
-                                      _answers[_currentQuestionIndex].score =
-                                          value;
-                                    });
-                                  }
-                                },
+                              final option = currentQuestion.options[index];
+                              final bool isSelected = selectedIds.contains(
+                                option.id,
+                              );
+
+                              return CheckboxListTile(
                                 title: Text(
-                                  _scoreLabels[index],
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
+                                  currentLocale == "en"
+                                      ? option.option
+                                      : option.optionId,
                                 ),
-                                contentPadding: EdgeInsets.zero,
+                                value: isSelected,
+                                controlAffinity:
+                                    ListTileControlAffinity.leading,
                                 activeColor: Theme.of(context).primaryColor,
+                                contentPadding: EdgeInsets.zero,
+                                onChanged: (bool? checked) {
+                                  setState(() {
+                                    if (checked == true) {
+                                      // Initialize list if it doesn't exist for this question
+                                      _selectedOptionIds.putIfAbsent(
+                                        _currentQuestionIndex,
+                                        () => [],
+                                      );
+                                      _selectedOptionIds[_currentQuestionIndex]!
+                                          .add(option.id);
+                                    } else {
+                                      _selectedOptionIds[_currentQuestionIndex]!
+                                          .remove(option.id);
+                                    }
+                                  });
+                                },
                               );
                             },
                           ),
@@ -320,51 +283,36 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
 
             // Navigation Buttons
             Padding(
-              padding: const EdgeInsets.only(
-                left: 20.0,
-                right: 20.0,
-                bottom: 20.0,
-              ),
+              padding: const EdgeInsets.all(20.0),
               child: Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Theme.of(context).primaryColor,
-                        side: BorderSide(color: Theme.of(context).primaryColor),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       onPressed: isFirstQuestion ? null : _previousQuestion,
-                      child: const Text(
-                        "Previous",
-                        style: TextStyle(fontSize: 18),
-                      ),
+                      child: Text(l10n.previous),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: FilledButton(
                       style: FilledButton.styleFrom(
-                        backgroundColor: Theme.of(context).primaryColor,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: _nextQuestion,
+                      onPressed: () => _nextQuestion(context),
                       child: Text(
-                        isLastQuestion ? "Submit Survey" : "Next",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                        ),
+                        isLastQuestion ? l10n.submitsurvey : l10n.next,
                       ),
                     ),
                   ),

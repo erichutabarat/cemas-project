@@ -27,6 +27,9 @@ class HarsQuestionsRepository {
 
       // Assuming the Go backend returns {"status": "success", "data": [...]}
       final List<dynamic> questionListJson = jsonResponse['questions'];
+      if (kDebugMode) {
+        print(questionListJson);
+      }
 
       // Map the list of JSON objects to AssessmentQuestion models
       return questionListJson
