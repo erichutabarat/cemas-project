@@ -110,22 +110,45 @@ class _HomeScreenState extends State<HomeScreen> {
               quickMenu(context),
               SizedBox(height: 20),
               // --- Articles Section ---
-              Text(
-                l10n.articles,
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 12),
-              // --- Article List ---
-              isLoading
-                  ? Center(child: CircularProgressIndicator())
-                  : errorMessage != null
-                  ? Center(
-                      child: Text(
-                        'Error: $errorMessage',
-                        style: TextStyle(color: Colors.red),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: ColorList.aquaCyan,
+                  ),
+                  padding: const EdgeInsets.all(22.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.articles,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    )
-                  : buildArticleList([...activityArticles, ...foodArticles]),
+                      SizedBox(height: 16),
+                      // --- Article List ---
+                      isLoading
+                          ? Center(child: CircularProgressIndicator())
+                          : errorMessage != null
+                          ? Center(
+                              child: Text(
+                                'Error: $errorMessage',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            )
+                          : buildArticleList([
+                              ...activityArticles,
+                              ...foodArticles,
+                            ]),
+                    ],
+                  ),
+                ),
+              ),
               // --- END Of Articles List ---
             ],
           ),
