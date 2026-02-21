@@ -11,22 +11,29 @@ int calculateMaxPossibleScore(List<AssessmentQuestion> questions) {
   return maxScore;
 }
 
-String getAnxietyLevel(int totalScore, List<AssessmentQuestion> questions) {
-  // Get the dynamic total based on the actual options available
-  int maxPossibleScore = calculateMaxPossibleScore(questions);
+String getAnxietyLevel(int totalScore) {
+  // Official HARS Scoring:
+  // < 17 : Mild severity
+  // 18 – 24 : Mild to moderate severity
+  // 25 – 30 : Moderate to severe severity
+  // > 30 : Severe/Very Serious
 
-  if (maxPossibleScore == 0) return "No questions to assess";
+  // level that set and used in HARS Result Screen
+  // < 13: Normal
+  // 14-26: Mild Anxiety
+  // 27-40: Moderate Anxiety
+  // 41-53: Severe Anxiety
+  // > 53: Very Serious Anxiety
 
-  double scorePercentage = (totalScore / maxPossibleScore) * 100;
-
-  // Anxiety level logic remains the same, but now based on a dynamic 100%
-  if (scorePercentage <= 30) {
-    return "No Anxiety";
-  } else if (scorePercentage <= 45) {
+  if (totalScore < 13) {
+    return "Normal";
+  } else if (totalScore <= 26) {
     return "Mild Anxiety";
-  } else if (scorePercentage <= 60) {
+  } else if (totalScore <= 40) {
     return "Moderate Anxiety";
-  } else {
+  } else if (totalScore <= 53) {
     return "Severe Anxiety";
+  } else {
+    return "Very Serious Anxiety";
   }
 }

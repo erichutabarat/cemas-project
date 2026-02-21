@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use
+// ignore_for_file: deprecated_member_use, unused_local_variable
 
 import 'package:deteksi_cemas/features/survey/data/models/assessment_questions_models.dart';
 import 'package:deteksi_cemas/features/survey/data/models/assessment_results_models.dart';
@@ -69,17 +69,18 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
     final l10n = AppLocalizations.of(context)!;
     if (_questions == null || _isLoading || _hasError) return;
 
-    // VALIDATION: Check if user has selected at least one option for the current question
-    final currentSelections = _selectedOptionIds[_currentQuestionIndex] ?? [];
-    if (currentSelections.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.pleaseselect),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
+    // Tidak dibutuhkan lagi
+    // // VALIDATION: Check if user has selected at least one option for the current question
+    // final currentSelections = _selectedOptionIds[_currentQuestionIndex] ?? [];
+    // if (currentSelections.isEmpty) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(
+    //       content: Text(l10n.pleaseselect),
+    //       duration: const Duration(seconds: 2),
+    //     ),
+    //   );
+    //   return;
+    // }
 
     if (_currentQuestionIndex < _questions!.length - 1) {
       setState(() {
@@ -109,7 +110,7 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
     if (_questions == null || _isLoading) return;
 
     final int totalScore = _calculateTotalScore();
-    final String anxietyLevel = getAnxietyLevel(totalScore, _questions!);
+    final String anxietyLevel = getAnxietyLevel(totalScore);
 
     AssessmentResult finalResult = AssessmentResult(
       totalScore: totalScore,
@@ -117,6 +118,10 @@ class _HarsSurveyScreenState extends State<HarsSurveyScreen> {
       id: -1,
       createdAt: null,
     );
+
+    if (kDebugMode) {
+      print(finalResult.toString());
+    }
 
     widget.surveyRepository
         ?.fetchHarsSubmit(finalResult)

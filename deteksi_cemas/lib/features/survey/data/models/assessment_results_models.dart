@@ -31,4 +31,9 @@ class AssessmentResult {
   Map<String, dynamic> toMap() {
     return {'score': totalScore, 'level': anxietyLevel};
   }
+
+  @override
+  String toString() {
+    return 'AssessmentResult(id: $id, score: $totalScore, level: $anxietyLevel, date: $createdAt)';
+  }
 }

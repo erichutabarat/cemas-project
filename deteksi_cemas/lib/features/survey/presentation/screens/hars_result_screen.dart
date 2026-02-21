@@ -1,4 +1,5 @@
 import 'package:deteksi_cemas/features/survey/data/models/assessment_results_models.dart';
+import 'package:deteksi_cemas/features/survey/presentation/widgets/get_icon_level.dart';
 import 'package:deteksi_cemas/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 // Ensure this path is correct for AssessmentResult
@@ -20,7 +21,7 @@ class _HarsResultScreenState extends State<HarsResultScreen> {
   // Helper function to determine color based on anxiety level
   Color _getAnxietyLevelColor(String level) {
     switch (level.toLowerCase()) {
-      case 'no anxiety':
+      case 'normal':
         return Colors.green.shade600;
       case 'mild anxiety':
         return Colors.yellow.shade700;
@@ -29,14 +30,14 @@ class _HarsResultScreenState extends State<HarsResultScreen> {
       case 'severe anxiety':
         return Colors.red.shade700;
       default:
-        return Colors.grey.shade600;
+        return Colors.red.shade800;
     }
   }
 
   // Helper function for a descriptive message (can be expanded)
   String _getDescriptiveMessage(String level) {
     switch (level.toLowerCase()) {
-      case 'no anxiety':
+      case 'normal':
         return 'It looks like you\'re experiencing very low levels of anxiety. Keep up your self-care routines!';
       case 'mild anxiety':
         return 'You\'re showing mild signs of anxiety. Small adjustments to daily habits can often help. Consider exploring relaxation techniques.';
@@ -82,10 +83,8 @@ class _HarsResultScreenState extends State<HarsResultScreen> {
               // Confetti/Celebration or prominent icon
               Center(
                 child: Icon(
-                  widget.result?.anxietyLevel.toLowerCase() == 'no anxiety'
-                      ? Icons.check_circle_outline
-                      : Icons.sentiment_neutral, // Or Icons.warning if severe
-                  size: 100,
+                  getIconLevel(widget.result!.anxietyLevel),
+                  size: 80,
                   color: levelColor,
                 ),
               ),

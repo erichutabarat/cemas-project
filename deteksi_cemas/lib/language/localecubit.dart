@@ -18,7 +18,7 @@ class LocaleCubit extends Cubit<Locale> {
   // Load language when app starts
   Future<void> _loadStoredLocale() async {
     final prefs = await SharedPreferences.getInstance();
-    final code = prefs.getString('language_code') ?? 'en';
+    final code = prefs.getString('language_code') ?? 'id';
     emit(Locale(code));
   }
 }
