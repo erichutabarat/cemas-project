@@ -1,3 +1,4 @@
+import 'package:deteksi_cemas/features/dashboard_admin/presentation/screens/article_admin_screen.dart';
 import 'package:deteksi_cemas/features/dashboard_admin/presentation/screens/home_admin_screen.dart';
 import 'package:deteksi_cemas/features/dashboard_admin/presentation/screens/medical_admin_screen.dart';
 import 'package:deteksi_cemas/features/dashboard_admin/presentation/screens/question_admin_screen.dart';
@@ -18,6 +19,7 @@ class _DashboardAdminLayoutState extends State<DashboardAdminLayout> {
     HomeAdminScreen(),
     MedicalAdminScreen(),
     QuestionAdminScreen(),
+    ArticleAdminScreen(),
     SettingAdminScreen(),
   ];
 
@@ -69,7 +71,8 @@ class _DashboardAdminLayoutState extends State<DashboardAdminLayout> {
               _buildNavItem(Icons.home_rounded, "Home", 0),
               _buildNavItem(Icons.medical_services_rounded, "Medical", 1),
               _buildNavItem(Icons.quiz_rounded, "Questions", 2),
-              _buildNavItem(Icons.settings_rounded, "Settings", 3),
+              _buildNavItem(Icons.article_rounded, "Articles", 3),
+              _buildNavItem(Icons.settings_rounded, "Settings", 4),
             ],
           ),
         ),
