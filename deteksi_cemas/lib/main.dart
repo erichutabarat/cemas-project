@@ -4,6 +4,7 @@ import 'package:deteksi_cemas/features/auth/presentation/screens/register_screen
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_bloc.dart';
 import 'package:deteksi_cemas/features/auth/presentation/states/googleauth_bloc.dart';
 import 'package:deteksi_cemas/features/dashboard/dashboard_layout.dart';
+import 'package:deteksi_cemas/features/dashboard_admin/dashboard_admin_layout.dart';
 import 'package:deteksi_cemas/features/loading/presentation/screens/loading_screen.dart';
 import 'package:deteksi_cemas/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:deteksi_cemas/features/survey/presentation/screens/hars_result_screen.dart';
@@ -71,6 +72,8 @@ class MainApp extends StatelessWidget {
             "/dashboard": (context) => DashboardLayout(),
             "/hars_survey": (context) => HarsSurveyScreen(),
             "/hars_result": (context) => HarsResultScreen(),
+            // Admin dashboard route
+            "/dashboard_admin": (context) => const DashboardAdminLayout(),
           },
         );
       },

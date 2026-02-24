@@ -87,10 +87,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 backgroundColor: Colors.green,
               ),
             );
-            Navigator.of(context).pushReplacementNamed(
-              "/dashboard",
-              arguments: {'userName': userName},
-            );
+            if (userName == "admin") {
+              Navigator.of(context).pushReplacementNamed("/dashboard_admin");
+            } else {
+              Navigator.of(context).pushReplacementNamed(
+                "/dashboard",
+                arguments: {'userName': userName},
+              );
+            }
           } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
