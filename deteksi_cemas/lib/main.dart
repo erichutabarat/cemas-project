@@ -1,3 +1,6 @@
+import 'package:deteksi_cemas/features/app_information/about_app.dart';
+import 'package:deteksi_cemas/features/app_information/privacy_policy.dart';
+import 'package:deteksi_cemas/features/app_information/terms_of_service.dart';
 import 'package:deteksi_cemas/features/auth/domain/repository/auth_repository.dart';
 import 'package:deteksi_cemas/features/auth/presentation/screens/login_screen.dart';
 import 'package:deteksi_cemas/features/auth/presentation/screens/register_screen.dart';
@@ -72,6 +75,9 @@ class MainApp extends StatelessWidget {
             "/dashboard": (context) => DashboardLayout(),
             "/hars_survey": (context) => HarsSurveyScreen(),
             "/hars_result": (context) => HarsResultScreen(),
+            "/privacy_policy": (context) => const PrivacyPolicyPage(),
+            "/terms_of_service": (context) => const TermsOfServicePage(),
+            "/about_app": (context) => const AboutAppPage(),
             // Admin dashboard route
             "/dashboard_admin": (context) => const DashboardAdminLayout(),
           },

@@ -56,9 +56,19 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   void _onNavigate(String title) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Navigating to $title... (Placeholder)')),
-    );
+    if (title == 'Privacy Policy') {
+      Navigator.pushNamed(context, '/privacy_policy');
+    } else if (title == 'Terms of Service') {
+      Navigator.pushNamed(context, '/terms_of_service');
+    } else if (title == 'About App') {
+      Navigator.pushNamed(context, '/about_app');
+    } else if (title == 'Edit Profile') {
+      Navigator.pushNamed(context, '/edit_profile');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Navigating to $title... (Placeholder)')),
+      );
+    }
   }
 
   @override
