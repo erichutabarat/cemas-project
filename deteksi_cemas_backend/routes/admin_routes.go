@@ -18,6 +18,7 @@ func SetupAdminRoutes(router *gin.Engine, db *gorm.DB) {
 
 	adminGroup.GET("/users/statistics", adminController.Statistics)
 	adminGroup.GET("/articles", adminController.GetAllArticles)
+	adminGroup.POST("/articles/:type", adminController.CreateArticleByType)
 	adminGroup.GET("/articles/:type/:id", adminController.GetArticleByTypeId)
 	adminGroup.PUT("/articles/:type/:id", adminController.UpdateArticleByTypeId)
 }

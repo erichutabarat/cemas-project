@@ -117,6 +117,71 @@ func (ac *AdminController) GetArticleByTypeId(c *gin.Context) {
     }
 }
 
+func (ac *AdminController) CreateArticleByType(c *gin.Context) {
+    articleType := c.Param("type")
+    switch articleType {
+    case "activity":
+        var req models.UploadActivityRequest
+        if err := c.ShouldBind(&req); err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
+            return
+        }
+
+        // Save image using RecommendationController
+        imageUrl, err := ac.RC.SaveFiles(c, req.ImageFile, "activities")
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+            return
+        }
+
+        activity := models.RecommendationActivity{
+            Name:         req.Name,
+            Description:  req.Description,
+            AnxietyLevel: req.AnxietyLevel,
+            ImageUrl:     imageUrl,
+        }
+
+        if err := ac.DB.Create(&activity).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save activity recommendation"})
+            return
+        }
+
+        c.JSON(http.StatusOK, gin.H{"message": "Activity recommendation uploaded successfully", "activity": activity})
+
+    case "food":
+        var req models.UploadFoodRequest
+        if err := c.ShouldBind(&req); err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
+            return
+        }
+
+        // Save image using RecommendationController
+        imageUrl, err := ac.RC.SaveFiles(c, req.ImageFile, "foods")
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+            return
+        }
+
+        food := models.RecommendationFood{
+            Name:         req.Name,
+            Description:  req.Description,
+            AnxietyLevel: req.AnxietyLevel,
+            ImageUrl:     imageUrl,
+        }
+
+        if err := ac.DB.Create(&food).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save food recommendation"})
+            return
+        }
+
+        c.JSON(http.StatusOK, gin.H{"message": "Food recommendation uploaded successfully", "food": food})
+
+    default:
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid article type"})
+        return
+    }
+}
+
 func (ac *AdminController) UpdateArticleByTypeId(c *gin.Context) {
 	articleType := c.Param("type") // "activity" or "food"
 	articleIDStr := c.Param("id")
