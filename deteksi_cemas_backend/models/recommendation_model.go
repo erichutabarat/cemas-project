@@ -37,3 +37,18 @@ type UploadFoodRequest struct {
 	// File Field: Captures the uploaded image file
     ImageFile    *multipart.FileHeader `form:"image" binding:"required"`
 }
+
+// optional for update
+type UpdateActivityRequest struct {	
+    Name         string                `form:"name"`
+    Description  string                `form:"description"`
+    AnxietyLevel string                `form:"anxiety_level"`
+    ImageFile    *multipart.FileHeader `form:"image"`
+}
+
+type UpdateFoodRequest struct {
+    Name         string                `form:"name"`
+    Description  string                `form:"description"`
+    AnxietyLevel string                `form:"anxiety_level"`
+    ImageFile    *multipart.FileHeader `form:"image"`
+}

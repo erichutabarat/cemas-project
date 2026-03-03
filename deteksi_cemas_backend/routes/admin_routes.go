@@ -9,10 +9,15 @@ import (
 )
 
 func SetupAdminRoutes(router *gin.Engine, db *gorm.DB) {
-	adminController := controllers.NewAdminController(db)
+	// create recommendation controller first
+	recommendationController := controllers.NewRecommendationController(db)
+	adminController := controllers.NewAdminController(db, recommendationController)
 
 	adminGroup := router.Group("/api/admin")
 	adminGroup.Use(middlewares.AdminOnly())
 
 	adminGroup.GET("/users/statistics", adminController.Statistics)
+	adminGroup.GET("/articles", adminController.GetAllArticles)
+	adminGroup.GET("/articles/:type/:id", adminController.GetArticleByTypeId)
+	adminGroup.PUT("/articles/:type/:id", adminController.UpdateArticleByTypeId)
 }
