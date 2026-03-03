@@ -17,18 +17,39 @@ func NewAdminController(db *gorm.DB) *AdminController {
     return &AdminController{DB: db}
 }
 
-// CountTotalUsers returns the total number of registered users
-func (ac *AdminController) CountTotalUsers(c *gin.Context) {
-    var count int64
+// show statistics about users, hars results, inspections, and hars questions for admin dashboard
+func (ac *AdminController) Statistics(c *gin.Context) {
+    var countUsers int64
+    var countHarsResults int64
+    var countInspections int64
+    var countHarsQuestions int64
 
     // Using Model(&models.User{}) ensures GORM targets the correct table
-    if err := ac.DB.Model(&models.User{}).Count(&count).Error; err != nil {
+    if err := ac.DB.Model(&models.User{}).Count(&countUsers).Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not count users"})
         return
     }
 
+    if err := ac.DB.Model(&models.HarsResults{}).Count(&countHarsResults).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not count HARS results"})
+        return
+    }
+
+    if err := ac.DB.Model(&models.Inspection{}).Count(&countInspections).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not count Inspections"})
+        return
+    }
+
+    if err := ac.DB.Model(&models.HarsQuestions{}).Count(&countHarsQuestions).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not count HARS questions"})
+        return
+    }
+
     c.JSON(http.StatusOK, gin.H{
-        "status":      "success",
-        "total_users": count,
+        "status":           "success",
+        "total_users":      countUsers,
+        "total_hars_results": countHarsResults,
+        "total_inspections": countInspections,
+        "total_hars_questions": countHarsQuestions,
     })
 }

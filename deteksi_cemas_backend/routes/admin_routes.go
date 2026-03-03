@@ -14,5 +14,5 @@ func SetupAdminRoutes(router *gin.Engine, db *gorm.DB) {
 	adminGroup := router.Group("/api/admin")
 	adminGroup.Use(middlewares.AdminOnly())
 
-	adminGroup.GET("/users/count", adminController.CountTotalUsers)
+	adminGroup.GET("/users/statistics", adminController.Statistics)
 }
