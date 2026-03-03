@@ -73,6 +73,7 @@ func main() {
     routes.SetupUserRoutes(r, db)
     routes.SetupHeartbeatRoutes(r, db)
     routes.SetupRecommendationRoutes(r, db)
+    routes.SetupAdminRoutes(r, db)
 
     // 4. Run server
     log.Println("Server listening on :8080")

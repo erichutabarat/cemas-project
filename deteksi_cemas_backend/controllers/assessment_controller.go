@@ -142,3 +142,5 @@ func (ac *AssessmentController) SubmitInformedConsent(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Informed consent submitted successfully", "informed_consent": consent})
 }
+
+// TODO: FIX USERS RELATION TO INFORMED CONSENT

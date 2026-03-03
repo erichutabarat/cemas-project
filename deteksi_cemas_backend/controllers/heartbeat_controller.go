@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"os"
 	"deteksi_cemas_backend/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -35,6 +36,17 @@ func (hc *HeartbeatController) Upload(c *gin.Context) {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Upload failed"})
         return
     }
+    
+	    // ==== PERMANENT PERMISSION FIXES ====
+
+	// 1. Fix the FILE (so it's -rw-r--r--)
+	// This allows Nginx to read the actual audio data
+	os.Chmod(filePath, 0644)
+
+	// 2. Fix the FOLDER (so it's drwxr-xr-x)
+	// This forces the "uploads" folder to stay open for Nginx
+	// Even if the Docker umask tried to close it (750 -> 755)
+	os.Chmod("uploads", 0755)
 
     // Audio URL (buat nanti ML server menggunakan di Analyze)
     audioUrl := "http://localhost:8080/" + filePath  
