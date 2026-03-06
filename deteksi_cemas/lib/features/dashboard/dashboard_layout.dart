@@ -4,6 +4,7 @@ import 'package:deteksi_cemas/features/dashboard/presentation/screens/home_scree
 import 'package:deteksi_cemas/features/dashboard/presentation/screens/record_screen.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/screens/setting_screen.dart';
 import 'package:deteksi_cemas/features/dashboard/domain/services/token_service.dart';
+import 'package:deteksi_cemas/features/dashboard/presentation/widgets/responsive_layout.dart';
 import 'package:deteksi_cemas/theme/color_list.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -200,87 +201,90 @@ class _DashboardLayoutState extends State<DashboardLayout>
           ),
         );
       },
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: Container(
-          child: _isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(color: Colors.red),
-                )
-              : Padding(
-                  padding: const EdgeInsets.all(0),
-                  child: SafeArea(
-                    child: _pageBuilders[_currentPage](_scrollController),
+      child: responsiveLayout(
+        content: Scaffold(
+          resizeToAvoidBottomInset: false,
+          body: Container(
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(color: Colors.red),
+                  )
+                : Padding(
+                    padding: const EdgeInsets.all(0),
+                    child: SafeArea(
+                      child: _pageBuilders[_currentPage](_scrollController),
+                    ),
                   ),
-                ),
-        ),
-        bottomNavigationBar: AnimatedContainer(
-          duration: const Duration(milliseconds: 300), // Animation speed
-          height: _isVisible
-              ? kBottomNavigationBarHeight + 8.0
-              : 0.0, // kBottomNavigationBarHeight is standard
-          child: Wrap(
-            // Use Wrap to prevent vertical overflow when height is zero
-            children: [
-              BottomNavigationBar(
-                currentIndex: _currentPage,
-                showSelectedLabels: false,
-                showUnselectedLabels: false,
-                type: BottomNavigationBarType.fixed,
-
-                // --- STYLED PROPERTIES ---
-                backgroundColor: Colors.white,
-                elevation: 4.0,
-
-                selectedItemColor: ColorList.emeraldBLue,
-                unselectedItemColor: ColorList.lavenderGray,
-
-                selectedFontSize: 0.0,
-                unselectedFontSize: 0.0,
-                // -------------------------
-                onTap: _onItemTapped,
-                items: const <BottomNavigationBarItem>[
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.home_outlined, size: 32),
-                    activeIcon: Icon(Icons.home_filled, size: 32),
-                    label: "Home",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.history_outlined, size: 32),
-                    activeIcon: Icon(Icons.history_rounded, size: 32),
-                    label: "History",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: SizedBox.shrink(), // Empty space for the FAB
-                    label: "Record",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.article_outlined, size: 32),
-                    activeIcon: Icon(Icons.article_rounded, size: 32),
-                    label: "Article",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.settings_outlined, size: 32),
-                    activeIcon: Icon(Icons.settings_rounded, size: 32),
-                    label: "Settings",
-                  ),
-                ],
-              ),
-            ],
           ),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        floatingActionButton: SlideTransition(
-          position:
-              _fabSlideAnimation, // The animation that drives the vertical movement
-          child: FloatingActionButton(
-            backgroundColor: ColorList.aquaCyan,
-            onPressed: () {
-              _onItemTapped(2);
-            },
-            tooltip: 'Record Page',
-            shape: const CircleBorder(),
-            child: const Icon(Icons.mic_rounded, color: Colors.white),
+          bottomNavigationBar: AnimatedContainer(
+            duration: const Duration(milliseconds: 300), // Animation speed
+            height: _isVisible
+                ? kBottomNavigationBarHeight + 8.0
+                : 0.0, // kBottomNavigationBarHeight is standard
+            child: Wrap(
+              // Use Wrap to prevent vertical overflow when height is zero
+              children: [
+                BottomNavigationBar(
+                  currentIndex: _currentPage,
+                  showSelectedLabels: false,
+                  showUnselectedLabels: false,
+                  type: BottomNavigationBarType.fixed,
+
+                  // --- STYLED PROPERTIES ---
+                  backgroundColor: Colors.white,
+                  elevation: 4.0,
+
+                  selectedItemColor: ColorList.emeraldBLue,
+                  unselectedItemColor: ColorList.lavenderGray,
+
+                  selectedFontSize: 0.0,
+                  unselectedFontSize: 0.0,
+                  // -------------------------
+                  onTap: _onItemTapped,
+                  items: const <BottomNavigationBarItem>[
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.home_outlined, size: 32),
+                      activeIcon: Icon(Icons.home_filled, size: 32),
+                      label: "Home",
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.history_outlined, size: 32),
+                      activeIcon: Icon(Icons.history_rounded, size: 32),
+                      label: "History",
+                    ),
+                    BottomNavigationBarItem(
+                      icon: SizedBox.shrink(), // Empty space for the FAB
+                      label: "Record",
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.article_outlined, size: 32),
+                      activeIcon: Icon(Icons.article_rounded, size: 32),
+                      label: "Article",
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.settings_outlined, size: 32),
+                      activeIcon: Icon(Icons.settings_rounded, size: 32),
+                      label: "Settings",
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.centerDocked,
+          floatingActionButton: SlideTransition(
+            position:
+                _fabSlideAnimation, // The animation that drives the vertical movement
+            child: FloatingActionButton(
+              backgroundColor: ColorList.aquaCyan,
+              onPressed: () {
+                _onItemTapped(2);
+              },
+              tooltip: 'Record Page',
+              shape: const CircleBorder(),
+              child: const Icon(Icons.mic_rounded, color: Colors.white),
+            ),
           ),
         ),
       ),
