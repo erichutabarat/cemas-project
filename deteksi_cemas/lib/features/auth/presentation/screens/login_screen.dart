@@ -5,6 +5,7 @@ import 'package:deteksi_cemas/features/auth/presentation/screens/googleauth_scre
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_bloc.dart';
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_event.dart';
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_state.dart';
+import 'package:deteksi_cemas/features/auth/presentation/widget/responsive_layout.dart';
 // Ensure this import points to the file created above
 import 'package:deteksi_cemas/features/onboarding/domain/repository/backend_repository.dart';
 import 'package:deteksi_cemas/l10n/app_localizations.dart';
@@ -74,195 +75,199 @@ class _LoginScreenState extends State<LoginScreen> {
       resizeToAvoidBottomInset: true,
       // Attached the Backend Drawer here
       endDrawer: _buildBackendDrawer(context),
-      body: BlocConsumer<AuthBloc, AuthState>(
-        listener: (context, state) async {
-          if (state is AuthSuccess) {
-            await tokenStorage.saveToken(state.token);
-            String userName = state.name;
-            String rememberEmail = _emailController.text;
-            await AuthRepository.rememberEmail(rememberEmail);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Login Berhasil!'),
-                backgroundColor: Colors.green,
-              ),
-            );
-            if (userName == "admin") {
-              Navigator.of(context).pushReplacementNamed("/dashboard_admin");
-            } else {
-              Navigator.of(context).pushReplacementNamed(
-                "/dashboard",
-                arguments: {'userName': userName},
+      body: responsiveLayout(
+        content: BlocConsumer<AuthBloc, AuthState>(
+          listener: (context, state) async {
+            if (state is AuthSuccess) {
+              await tokenStorage.saveToken(state.token);
+              String userName = state.name;
+              String rememberEmail = _emailController.text;
+              await AuthRepository.rememberEmail(rememberEmail);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Login Berhasil!'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              if (userName == "admin") {
+                Navigator.of(context).pushReplacementNamed("/dashboard_admin");
+              } else {
+                Navigator.of(context).pushReplacementNamed(
+                  "/dashboard",
+                  arguments: {'userName': userName},
+                );
+              }
+            } else if (state is AuthError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Colors.red,
+                ),
               );
             }
-          } else if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              // 1. Background Gradient
-              Container(
-                height: blueContainerHeight,
-                decoration: BoxDecoration(gradient: AppTheme.softChillReversed),
-                child: appNameSketch(),
-              ),
+          },
+          builder: (context, state) {
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                // 1. Background Gradient
+                Container(
+                  height: blueContainerHeight,
+                  decoration: BoxDecoration(
+                    gradient: AppTheme.softChillReversed,
+                  ),
+                  child: appNameSketch(),
+                ),
 
-              // 2. White Card Content
-              Positioned(
-                top: blueContainerHeight - overlapAmount,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
+                // 2. White Card Content
+                Positioned(
+                  top: blueContainerHeight - overlapAmount,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(30),
+                        topRight: Radius.circular(30),
+                      ),
+                    ),
+                    child: ListView(
+                      physics: const ClampingScrollPhysics(),
+                      padding: const EdgeInsets.all(24.0),
+                      children: [
+                        Center(
+                          child: GestureDetector(
+                            onTap: () {
+                              Scaffold.of(context).openEndDrawer();
+                            },
+                            child: const Text(
+                              'Login Your Account',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        TextField(
+                          controller: _emailController,
+                          decoration: const InputDecoration(
+                            labelText: "Email",
+                            hintText: "youremail@example.com",
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        TextField(
+                          controller: _passwordController,
+                          obscureText: true,
+                          decoration: const InputDecoration(
+                            labelText: "Password",
+                            hintText: "Enter your password",
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Login Button
+                        SizedBox(
+                          width: double.infinity,
+                          child: (state is AuthLoading)
+                              ? const Center(child: CircularProgressIndicator())
+                              : ElevatedButton(
+                                  onPressed: _onLoginPressed,
+                                  style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    backgroundColor: ColorList.emeraldBLue,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  child: const Text(
+                                    'Login',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Register Link
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(
+                              context,
+                            ).pushReplacementNamed("/register");
+                          },
+                          child: Text(
+                            l10n.dont_have_account,
+                            style: TextStyle(color: Colors.grey[700]),
+                          ),
+                        ),
+
+                        SizedBox(
+                          height: MediaQuery.of(context).viewInsets.bottom,
+                        ),
+
+                        // Inside your LoginScreen's ListView
+                        OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 24,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(40),
+                            ),
+                            side: BorderSide(color: ColorList.emeraldBLue),
+                          ),
+                          onPressed: () {
+                            // Simply navigate to the processing screen
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const GoogleAuthLoadingScreen(),
+                              ),
+                            );
+                          },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.network(
+                                'https://developers.google.com/identity/images/g-logo.png',
+                                height: 24,
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'Sign in with Google',
+                                style: TextStyle(
+                                  color: ColorList.deepBlue,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: ListView(
-                    physics: const ClampingScrollPhysics(),
-                    padding: const EdgeInsets.all(24.0),
-                    children: [
-                      Center(
-                        child: GestureDetector(
-                          onTap: () {
-                            Scaffold.of(context).openEndDrawer();
-                          },
-                          child: const Text(
-                            'Login Your Account',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: _emailController,
-                        decoration: const InputDecoration(
-                          labelText: "Email",
-                          hintText: "youremail@example.com",
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: _passwordController,
-                        obscureText: true,
-                        decoration: const InputDecoration(
-                          labelText: "Password",
-                          hintText: "Enter your password",
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Login Button
-                      SizedBox(
-                        width: double.infinity,
-                        child: (state is AuthLoading)
-                            ? const Center(child: CircularProgressIndicator())
-                            : ElevatedButton(
-                                onPressed: _onLoginPressed,
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  backgroundColor: ColorList.emeraldBLue,
-                                  foregroundColor: Colors.white,
-                                ),
-                                child: const Text(
-                                  'Login',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Register Link
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(
-                            context,
-                          ).pushReplacementNamed("/register");
-                        },
-                        child: Text(
-                          l10n.dont_have_account,
-                          style: TextStyle(color: Colors.grey[700]),
-                        ),
-                      ),
-
-                      SizedBox(
-                        height: MediaQuery.of(context).viewInsets.bottom,
-                      ),
-
-                      // Inside your LoginScreen's ListView
-                      OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 24,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(40),
-                          ),
-                          side: BorderSide(color: ColorList.emeraldBLue),
-                        ),
-                        onPressed: () {
-                          // Simply navigate to the processing screen
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const GoogleAuthLoadingScreen(),
-                            ),
-                          );
-                        },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image.network(
-                              'https://developers.google.com/identity/images/g-logo.png',
-                              height: 24,
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              'Sign in with Google',
-                              style: TextStyle(
-                                color: ColorList.deepBlue,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }

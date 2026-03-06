@@ -3,6 +3,10 @@
 import 'dart:async';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+// Note: We use this conditional import to prevent Android from crashing
+import 'package:mqtt_client/mqtt_browser_client.dart'
+    if (dart.library.io) 'package:mqtt_client/mqtt_server_client.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class MqttService {
   static final MqttService _instance = MqttService._internal();
@@ -11,129 +15,99 @@ class MqttService {
   static const String _broker = '103.63.25.67';
   static const String _clientId = 'flutter_checker';
 
-  MqttServerClient? _client;
+  // Using dynamic here avoids the "Type Mismatch" errors between Server/Browser
+  dynamic _client;
 
   MqttService._internal();
 
-  /// --- NEW: PRIVATE HELPER FOR PUBLISHING ---
   void _publish(String topic, String message) {
     if (_client == null ||
         _client!.connectionStatus?.state != MqttConnectionState.connected) {
       print("Cannot publish: MQTT not connected");
       return;
     }
-
     final builder = MqttClientPayloadBuilder();
     builder.addString(message);
-
     _client!.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!);
-    print("Published [$message] to $topic");
   }
 
-  /// --- NEW: SEND CONNECT HANDSHAKE ---
-  /// Call this when the user enters the recording screen to set status to "USED"
-  void sendConnectHandshake(String deviceId) {
-    final topic = 'esp32/device_$deviceId/control';
-    _publish(topic, 'CONNECT');
-  }
+  void sendConnectHandshake(String deviceId) =>
+      _publish('esp32/device_$deviceId/control', 'CONNECT');
+  void startRecording(String deviceId) =>
+      _publish('esp32/device_$deviceId/control', 'START');
+  void stopRecording(String deviceId) =>
+      _publish('esp32/device_$deviceId/control', 'STOP');
+  void sendAuthToken(String deviceId, String token) =>
+      _publish('esp32/device_$deviceId/auth', token);
 
-  /// --- NEW: START RECORDING ---
-  void startRecording(String deviceId) {
-    final topic = 'esp32/device_$deviceId/control';
-    _publish(topic, 'START');
-  }
-
-  /// --- NEW: STOP RECORDING ---
-  void stopRecording(String deviceId) {
-    final topic = 'esp32/device_$deviceId/control';
-    _publish(topic, 'STOP');
-  }
-
-  /// --- NEW: SEND AUTH TOKEN ---
-  /// Call this so the ESP32 knows which token to use for the upload
-  void sendAuthToken(String deviceId, String token) {
-    final topic = 'esp32/device_$deviceId/auth';
-    _publish(topic, token); // Usually includes "Bearer "
-  }
-
-  /// CONNECT SAFELY
   Future<void> connect() async {
     if (_client != null &&
         _client!.connectionStatus?.state == MqttConnectionState.connected) {
       return;
     }
 
-    _client = MqttServerClient(_broker, _clientId);
-    _client!.port = 8083;
-    _client!.keepAlivePeriod = 20;
+    if (kIsWeb) {
+      // WEB CONFIG: Uses the browser client
+      final browserClient = MqttBrowserClient(
+        'wss://deteksicemas.my.id/mqtt/',
+        _clientId,
+      );
+      browserClient.port = 443;
+      _client = browserClient;
+    } else {
+      // MOBILE CONFIG: Uses the server client
+      final serverClient = MqttServerClient(_broker, _clientId);
+      serverClient.port = 8083;
+      serverClient.useWebSocket = false;
+      _client = serverClient;
+    }
 
-    // debug topics:
+    _client!.keepAlivePeriod = 20;
     _client!.onDisconnected = () => print('Disconnected');
     _client!.onConnected = () => print('Connected to Broker');
-    _client!.onSubscribed = (topic) => print('Subscribed to $topic');
 
-    // CRITICAL: Ensure the protocol is correct
     _client!.connectionMessage = MqttConnectMessage()
         .withClientIdentifier(_clientId)
-        .startClean() // This is important for "check" functionality
+        .startClean()
         .withWillQos(MqttQos.atLeastOnce);
 
     try {
-      print('Connecting to $_broker...');
+      print('Connecting (Web: $kIsWeb)...');
       await _client!.connect();
     } catch (e) {
-      print('Exception: $e');
+      print('MQTT Exception: $e');
       disconnect();
     }
   }
 
-  /// 🔍 CHECK DEVICE EXIST
   Future<bool> checkDeviceExist(
     String deviceId, {
     Duration timeout = const Duration(seconds: 3),
   }) async {
     if (_client == null ||
         _client!.connectionStatus?.state != MqttConnectionState.connected) {
-      throw Exception('MQTT not connected');
+      return false;
     }
 
     final topic = 'esp32/device_$deviceId/status';
     final completer = Completer<bool>();
-
     _client!.subscribe(topic, MqttQos.atLeastOnce);
 
-    late StreamSubscription sub;
-    sub = _client!.updates!.listen((events) {
+    _client!.updates!.listen((List<MqttReceivedMessage<MqttMessage>> events) {
       for (final event in events) {
         final msg = event.payload as MqttPublishMessage;
         final payload = MqttPublishPayload.bytesToStringAsString(
           msg.payload.message,
         );
-
-        if (payload == 'IDLE' ||
-            payload == 'USED' ||
-            payload == 'RECORDING_STARTED') {
-          if (!completer.isCompleted) {
-            if (!completer.isCompleted) {
-              completer.complete(
-                true,
-              ); // The device exists and is reporting a state
-            }
-          }
-          _client!.unsubscribe(topic);
-          sub.cancel();
+        if (['IDLE', 'USED', 'RECORDING_STARTED'].contains(payload)) {
+          if (!completer.isCompleted) completer.complete(true);
         }
       }
     });
 
     Future.delayed(timeout, () {
-      if (!completer.isCompleted) {
-        completer.complete(false);
-        _client!.unsubscribe(topic);
-        sub.cancel();
-      }
+      if (!completer.isCompleted) completer.complete(false);
     });
-
     return completer.future;
   }
 
