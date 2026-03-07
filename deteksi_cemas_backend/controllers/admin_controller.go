@@ -280,3 +280,39 @@ func (ac *AdminController) UpdateArticleByTypeId(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid article type"})
 	}
 }
+
+func (ac *AdminController) GetAllHarsQuestionsAndOptions(c *gin.Context) {
+    var questions []models.HarsQuestions
+    if err := ac.DB.Preload("Options").Find(&questions).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch HARS questions and options"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "status": "success",
+        "hars_questions": questions,
+    })
+}
+
+func (ac *AdminController) CreateHarsQuestion(c *gin.Context) {
+    var req models.CreateHarsQuestionRequest
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
+        return
+    }
+    
+    question := models.HarsQuestions{
+        Category: req.Category,
+        Question: req.Question,
+        SymptomType: req.SymptomType,
+    }
+    
+    if err := ac.DB.Create(&question).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create HARS question"})
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{
+        "message": "HARS question created successfully",
+        "question": question,
+    })
+}
