@@ -105,25 +105,21 @@ class _QuestionAdminScreenState extends State<QuestionAdminScreen> {
                     children: [
                       const Divider(height: 1),
                       // Loop Opsi/Gejala
-                      ...(q['options'] as List)
-                          .map(
-                            (opt) => ListTile(
-                              dense: true,
-                              leading: const Icon(
-                                Icons.check_circle_outline,
-                                size: 18,
-                                color: Colors.green,
-                              ),
-                              title: Text(opt['option_id']),
-                              trailing: Text(
-                                "Score: ${opt['score']}",
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          )
-                          .toList(),
+                      ...(q['options'] as List).map(
+                        (opt) => ListTile(
+                          dense: true,
+                          leading: const Icon(
+                            Icons.check_circle_outline,
+                            size: 18,
+                            color: Colors.green,
+                          ),
+                          title: Text(opt['option_id']),
+                          trailing: Text(
+                            "Score: ${opt['score']}",
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
 
                       // Action Buttons
                       Padding(

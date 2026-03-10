@@ -13,7 +13,7 @@ import 'package:intl/intl.dart';
 
 class ArticleScreen extends StatefulWidget {
   final ScrollController? controller;
-  const ArticleScreen({super.key, required this.controller});
+  const ArticleScreen({super.key, this.controller});
 
   @override
   State<ArticleScreen> createState() => _ArticleScreenState();

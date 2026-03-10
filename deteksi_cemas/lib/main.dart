@@ -7,6 +7,8 @@ import 'package:deteksi_cemas/features/auth/presentation/screens/register_screen
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_bloc.dart';
 import 'package:deteksi_cemas/features/auth/presentation/states/googleauth_bloc.dart';
 import 'package:deteksi_cemas/features/dashboard/dashboard_layout.dart';
+import 'package:deteksi_cemas/features/dashboard/presentation/screens/survey_screen.dart';
+import 'package:deteksi_cemas/features/dashboard/presentation/widgets/responsive_layout.dart';
 import 'package:deteksi_cemas/features/dashboard_admin/dashboard_admin_layout.dart';
 import 'package:deteksi_cemas/features/loading/presentation/screens/loading_screen.dart';
 import 'package:deteksi_cemas/features/onboarding/presentation/screens/onboarding_screen.dart';
@@ -73,6 +75,7 @@ class MainApp extends StatelessWidget {
             "/register": (context) => RegisterScreen(),
             "/login": (context) => LoginScreen(),
             "/dashboard": (context) => DashboardLayout(),
+            "/survey": (context) => responsiveLayout(content: SurveyScreen()),
             "/hars_survey": (context) => HarsSurveyScreen(),
             "/hars_result": (context) => HarsResultScreen(),
             "/privacy_policy": (context) => const PrivacyPolicyPage(),
