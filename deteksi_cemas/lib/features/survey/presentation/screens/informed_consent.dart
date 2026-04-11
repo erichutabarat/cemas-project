@@ -346,9 +346,11 @@ Saya setuju secara sukarela untuk menjalani prosedur atau menjadi peserta peneli
       ),
       child: ElevatedButton(
         onPressed: () {
-          if (!_validateForm()) {
+          if (!_validateForm() || _isAgreed != true) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Please fill all fields")),
+              const SnackBar(
+                content: Text("Please fill all fields and agree to the terms"),
+              ),
             );
             return;
           } else {
