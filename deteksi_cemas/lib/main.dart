@@ -12,6 +12,7 @@ import 'package:deteksi_cemas/features/dashboard/presentation/widgets/responsive
 import 'package:deteksi_cemas/features/dashboard_admin/dashboard_admin_layout.dart';
 import 'package:deteksi_cemas/features/loading/presentation/screens/loading_screen.dart';
 import 'package:deteksi_cemas/features/onboarding/presentation/screens/onboarding_screen.dart';
+import 'package:deteksi_cemas/features/survey/presentation/screens/guest_feedback_screen.dart';
 import 'package:deteksi_cemas/features/survey/presentation/screens/hars_result_screen.dart';
 import 'package:deteksi_cemas/features/survey/presentation/screens/hars_survey_screen.dart';
 import 'package:deteksi_cemas/l10n/app_localizations.dart';
@@ -83,6 +84,8 @@ class MainApp extends StatelessWidget {
             "/about_app": (context) => const AboutAppPage(),
             // Admin dashboard route
             "/dashboard_admin": (context) => const DashboardAdminLayout(),
+
+            "/feedback": (context) => const GuestFeedbackScreen(),
           },
         );
       },

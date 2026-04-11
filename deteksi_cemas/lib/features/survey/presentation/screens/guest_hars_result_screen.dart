@@ -43,15 +43,15 @@ class _GuestHarsResultScreenState extends State<GuestHarsResultScreen> {
   String _getDescriptiveMessage(String level) {
     switch (level.toLowerCase()) {
       case 'normal':
-        return 'It looks like you\'re experiencing very low levels of anxiety. Keep up your self-care routines!';
+        return 'Sepertinya tingkat kecemasan Anda sangat rendah. Tetap jaga kesehatan mental dan rutinitas perawatan diri Anda!';
       case 'mild anxiety':
-        return 'You\'re showing mild signs of anxiety. Small adjustments to daily habits can often help. Consider exploring relaxation techniques.';
+        return 'Anda menunjukkan tanda-tanda kecemasan ringan. Perubahan kecil pada kebiasaan harian dan teknik relaksasi dapat membantu Anda merasa lebih baik.';
       case 'moderate anxiety':
-        return 'Your results suggest moderate anxiety. It might be helpful to talk to a professional or explore stress management strategies.';
+        return 'Hasil Anda menunjukkan tingkat kecemasan sedang. Mungkin bermanfaat bagi Anda untuk bercerita kepada profesional atau mengeksplorasi strategi pengelolaan stres.';
       case 'severe anxiety':
-        return 'Your score indicates severe anxiety. We strongly recommend seeking professional support from a doctor or mental health specialist.';
+        return 'Skor Anda menunjukkan tingkat kecemasan berat. Kami sangat menyarankan Anda untuk segera mencari dukungan profesional dari dokter atau spesialis kesehatan mental.';
       default:
-        return 'Thank you for completing the survey. We recommend reviewing your results.';
+        return 'Terima kasih telah menyelesaikan survei ini. Kami menyarankan Anda untuk meninjau kembali hasil evaluasi Anda.';
     }
   }
 
@@ -199,11 +199,11 @@ class _GuestHarsResultScreenState extends State<GuestHarsResultScreen> {
                           width: double.infinity,
                           child: _buildActionButton(
                             context,
-                            'Return to Home',
+                            'Isi Feedback',
                             Icons.home,
                             () => Navigator.of(
                               context,
-                            ).pushReplacementNamed('/dashboard'),
+                            ).pushReplacementNamed('/feedback'),
                             isPrimary: true,
                           ),
                         ),
