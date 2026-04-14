@@ -11,3 +11,5 @@ deteksi_cemas_backend
 bin/
 dist/
 deploy.md
+
+cemas-backend_latest.tar

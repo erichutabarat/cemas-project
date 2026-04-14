@@ -54,6 +54,62 @@ func (ac *AssessmentController) SubmitAssessment(c *gin.Context){
 	c.JSON(http.StatusOK, gin.H{"message": "Assessment submitted successfully", "result": result})
 }
 
+func (ac *AssessmentController) SubmitGuestAssessment(c *gin.Context) {
+	var input struct {
+		Email  string `json:"email" binding:"required,email"`
+		Name   string `json:"name" binding:"required"`
+		Gender string `json:"gender" binding:"required"`
+		Age    int    `json:"age" binding:"required"`
+
+		Score int    `json:"score" binding:"required"`
+		Level string `json:"level" binding:"required"`
+	}
+
+	// Validate request
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid input format or missing fields",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Create guest
+	guest := models.Guest{
+		Email:  input.Email,
+		Name:   input.Name,
+		Gender: input.Gender,
+		Age:    input.Age,
+	}
+
+	if err := ac.DB.Create(&guest).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create guest",
+		})
+		return
+	}
+
+	// Create assessment result
+	result := models.GuestHarsResults{
+		GuestID: guest.ID,
+		Score:   input.Score,
+		Level:   input.Level,
+	}
+
+	if err := ac.DB.Create(&result).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to submit assessment",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Guest assessment submitted successfully",
+		"guest":   guest,
+		"result":  result,
+	})
+}
+
 func (ac *AssessmentController) DeleteResult(c *gin.Context) {
     id := c.Param("id")
 	
@@ -143,4 +199,22 @@ func (ac *AssessmentController) SubmitInformedConsent(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Informed consent submitted successfully", "informed_consent": consent})
 }
 
-// TODO: FIX USERS RELATION TO INFORMED CONSENT
+func (ac *AssessmentController) GetAllGuestResults(c *gin.Context) {
+	var results []models.GuestHarsResults
+
+	if err := ac.DB.
+		Preload("Guest").
+		Order("created_at DESC").
+		Find(&results).Error; err != nil {
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch guest assessment results",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Guest results retrieved successfully",
+		"data": results,
+	})
+}

@@ -17,6 +17,12 @@ func SetupAssessmentRoutes(router *gin.Engine, db *gorm.DB) {
         // 1. Public Route: /api/assessment/questions
         assessment.GET("/questions", assessmentController.GetQuestions)
 
+        // Path: /api/assessment/guest-submit
+        assessment.POST("/guest-submit", assessmentController.SubmitGuestAssessment)
+        
+        // Path: /api/assessment/guest-results
+        assessment.GET("/guest-results", assessmentController.GetAllGuestResults)
+
         // 2. All routes below this will use the AuthMiddleware
         assessment.Use(middlewares.AuthMiddleware())
         {

@@ -294,25 +294,26 @@ func (ac *AdminController) GetAllHarsQuestionsAndOptions(c *gin.Context) {
     })
 }
 
-func (ac *AdminController) CreateHarsQuestion(c *gin.Context) {
-    var req models.CreateHarsQuestionRequest
-    if err := c.ShouldBindJSON(&req); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
-        return
-    }
+// TODO: Implement Create, Update, Delete for HARS questions and options
+// func (ac *AdminController) CreateHarsQuestion(c *gin.Context) {
+//     var req models.CreateHarsQuestionRequest
+//     if err := c.ShouldBindJSON(&req); err != nil {
+//         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
+//         return
+//     }
     
-    question := models.HarsQuestions{
-        Category: req.Category,
-        Question: req.Question,
-        SymptomType: req.SymptomType,
-    }
+//     question := models.HarsQuestions{
+//         Category: req.Category,
+//         Question: req.Question,
+//         SymptomType: req.SymptomType,
+//     }
     
-    if err := ac.DB.Create(&question).Error; err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create HARS question"})
-        return
-    }
-    c.JSON(http.StatusOK, gin.H{
-        "message": "HARS question created successfully",
-        "question": question,
-    })
-}
+//     if err := ac.DB.Create(&question).Error; err != nil {
+//         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create HARS question"})
+//         return
+//     }
+//     c.JSON(http.StatusOK, gin.H{
+//         "message": "HARS question created successfully",
+//         "question": question,
+//     })
+// }

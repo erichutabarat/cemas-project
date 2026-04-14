@@ -16,7 +16,9 @@ func main() {
     // 1. Initialize DB
     db := config.InitDB(
         &models.User{},
+        &models.Guest{},
         &models.HarsResults{},
+        &models.GuestHarsResults{},
         &models.HarsQuestions{},
         &models.HarsOptions{},
         &models.InformedConsent{},
@@ -24,12 +26,17 @@ func main() {
         &models.Result{},
         &models.RecommendationActivity{},
         &models.RecommendationFood{},
+        &models.FeedbackQuestion{},
+        &models.FeedbackResponse{},
     )
 
     migrations.SeedHarsQuestions(db)
 
     // Seed Options second (Child)
     migrations.SeedHarsOptions(db)
+
+    // Seed Feedback Questions
+    migrations.SeedFeedbackQuestions(db)
 
     // -----------------------------------------------------------
     // OPTIMASI PERFORMA LOAD TEST
@@ -74,6 +81,7 @@ func main() {
     routes.SetupHeartbeatRoutes(r, db)
     routes.SetupRecommendationRoutes(r, db)
     routes.SetupAdminRoutes(r, db)
+    routes.SetupFeedbackRoutes(r, db)
 
     // 4. Run server
     log.Println("Server listening on :8080")
