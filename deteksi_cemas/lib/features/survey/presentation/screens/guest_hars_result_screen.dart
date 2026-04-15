@@ -1,5 +1,7 @@
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/responsive_layout.dart';
 import 'package:deteksi_cemas/features/survey/data/models/assessment_results_models.dart';
+import 'package:deteksi_cemas/features/survey/data/models/guest_models.dart';
+import 'package:deteksi_cemas/features/survey/presentation/screens/guest_feedback_screen.dart';
 import 'package:deteksi_cemas/features/survey/presentation/widgets/get_icon_level.dart';
 import 'package:deteksi_cemas/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -11,8 +13,9 @@ import 'package:flutter/material.dart';
 class GuestHarsResultScreen extends StatefulWidget {
   // We need to pass the AssessmentResult to this screen
   final AssessmentResult? result;
+  final Guest guest;
 
-  const GuestHarsResultScreen({super.key, this.result});
+  const GuestHarsResultScreen({super.key, this.result, required this.guest});
 
   @override
   State<GuestHarsResultScreen> createState() => _GuestHarsResultScreenState();
@@ -201,9 +204,13 @@ class _GuestHarsResultScreenState extends State<GuestHarsResultScreen> {
                             context,
                             'Isi Feedback',
                             Icons.home,
-                            () => Navigator.of(
+                            () => Navigator.pushReplacement(
                               context,
-                            ).pushReplacementNamed('/feedback'),
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    GuestFeedbackScreen(guest: widget.guest),
+                              ),
+                            ),
                             isPrimary: true,
                           ),
                         ),

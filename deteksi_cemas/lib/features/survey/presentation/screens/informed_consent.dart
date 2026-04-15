@@ -23,7 +23,7 @@ class _InformedConsentFormState extends State<InformedConsentForm> {
   final Color bgColor = const Color(0xFFF8FAFC);
   final Color cardColor = Colors.white;
 
-  String? _gender;
+  String _gender = "Male"; // Default value for dropdown
   bool? _isAgreed;
 
   // Controllers
@@ -264,7 +264,7 @@ Saya setuju secara sukarela untuk menjalani prosedur atau menjadi peserta peneli
           "Male",
           "Female",
         ].map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
-        onChanged: (v) => setState(() => _gender = v),
+        onChanged: (v) => setState(() => _gender = v!),
       ),
     );
   }
@@ -361,6 +361,7 @@ Saya setuju secara sukarela untuk menjalani prosedur atau menjadi peserta peneli
               prodi: _prodiController.text,
               nim: _nimController.text,
               phoneNumber: _whatsappController.text,
+              gender: _gender,
             );
             Navigator.push(
               context,

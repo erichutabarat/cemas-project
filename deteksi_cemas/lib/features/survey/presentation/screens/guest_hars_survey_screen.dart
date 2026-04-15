@@ -110,7 +110,8 @@ class _GuestHarsSurveyScreenState extends State<GuestHarsSurveyScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => GuestHarsResultScreen(result: finalResult),
+        builder: (context) =>
+            GuestHarsResultScreen(result: finalResult, guest: widget.guest),
       ),
     );
   }

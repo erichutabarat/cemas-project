@@ -5,6 +5,7 @@ class Guest {
   final String prodi;
   final String nim;
   final String phoneNumber;
+  final String gender;
 
   Guest({
     required this.name,
@@ -13,6 +14,7 @@ class Guest {
     required this.prodi,
     required this.nim,
     required this.phoneNumber,
+    required this.gender,
   });
 
   Map<String, dynamic> toJson() {
@@ -23,6 +25,7 @@ class Guest {
       'prodi': prodi,
       'nim': nim,
       'phone_number': phoneNumber,
+      'gender': gender,
     };
   }
 }

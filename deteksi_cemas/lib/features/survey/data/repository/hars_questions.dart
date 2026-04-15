@@ -135,25 +135,19 @@ class HarsQuestionsRepository {
     required Guest guest,
     required int score,
     required String level,
-    String gender =
-        "male", // Defaulting as it's in your Postman example but not the class
   }) async {
+    // Removed 'String gender = "male"' from here
     final String apiUrl = await BackendRepository.getBackendUrl();
-
-    // Update this to your actual guest endpoint
     final url = Uri.parse('$apiUrl/api/assessment/guest-submit');
-
     final headers = {'Content-Type': 'application/json'};
 
-    // Combine Guest data with Assessment results to match Postman format
     final Map<String, dynamic> requestBody = {
       "email": guest.email,
       "name": guest.name,
-      "gender": gender,
+      "gender": guest.gender
+          .toLowerCase(), // Force lowercase to match typical backend expectations
       "prodi": guest.prodi,
-      "phonenumber":
-          int.tryParse(guest.phoneNumber) ??
-          0, // Converting String to int for Postman match
+      "phonenumber": int.tryParse(guest.phoneNumber) ?? 0,
       "age": guest.age,
       "score": score,
       "level": level,
