@@ -34,11 +34,20 @@ class _GuestFeedbackScreenState extends State<GuestFeedbackScreen> {
 
   bool _isFormValid(List<FeedbackQuestion> questions) {
     return questions.every((q) {
+      // Check if the question ID exists in our answer map at all
+      if (!_answers.containsKey(q.id)) return false;
+
       final answer = _answers[q.id];
-      if (q.type == QuestionType.scale) return answer != null && answer != -1;
+
+      if (q.type == QuestionType.scale) {
+        // Must be 1, 2, 3, 4, or 5. If it's 0 or null, it's invalid.
+        return answer is int && answer >= 1 && answer <= 5;
+      }
+
       if (q.type == QuestionType.text) {
         return answer != null && answer.toString().trim().isNotEmpty;
       }
+
       return true;
     });
   }
@@ -95,7 +104,13 @@ class _GuestFeedbackScreenState extends State<GuestFeedbackScreen> {
                             Icons.arrow_back_ios_new_rounded,
                             color: Colors.white,
                           ),
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () {
+                            // Instead of popping 3 times, go straight home
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                              '/survey',
+                              (route) => false,
+                            );
+                          },
                         ),
                         const Expanded(
                           child: Text(
@@ -193,9 +208,12 @@ class _GuestFeedbackScreenState extends State<GuestFeedbackScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: List.generate(_emojis.length, (index) {
-                bool isSelected = _answers[question.id] == index;
+                int actualValue =
+                    index + 1; // Scale starts at 1, but index starts at 0
+                bool isSelected = _answers[question.id] == actualValue;
                 return GestureDetector(
-                  onTap: () => setState(() => _answers[question.id] = index),
+                  onTap: () =>
+                      setState(() => _answers[question.id] = actualValue),
                   child: Column(
                     children: [
                       AnimatedContainer(
@@ -377,12 +395,10 @@ class _GuestFeedbackScreenState extends State<GuestFeedbackScreen> {
           Center(
             child: TextButton(
               onPressed: () {
-                //back to survey
-                Navigator.pop(context); // Close dialog
-                Navigator.pop(context); // Go back to survey screen
-                Navigator.pop(
+                // Instead of popping 3 times, go straight home
+                Navigator.of(
                   context,
-                ); // Go back to dashboard or wherever you want
+                ).pushNamedAndRemoveUntil('/survey', (route) => false);
               },
               child: Text(
                 "Selesai",

@@ -1,6 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:deteksi_cemas/features/dashboard/domain/repository/user_repository.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/research_info_card.dart';
 import 'package:deteksi_cemas/features/survey/presentation/screens/informed_consent.dart';
 import 'package:deteksi_cemas/l10n/app_localizations.dart';
@@ -16,23 +15,9 @@ class SurveyScreen extends StatefulWidget {
 }
 
 class _SurveyScreenState extends State<SurveyScreen> {
-  final UserRepository userRepository = UserRepository();
-  late Future<List<dynamic>> userHistoryFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    userHistoryFuture = userRepository.fetchUsersSurveyHistory();
-  }
-
   // --- REFRESH LOGIC ---
   Future<void> _refreshHistory() async {
-    setState(() {
-      // Re-fetching the data triggers the FutureBuilder to rebuild
-      userHistoryFuture = userRepository.fetchUsersSurveyHistory();
-    });
-    // Wait for the future to complete before hiding the spinner
-    await userHistoryFuture;
+    return;
   }
 
   @override
