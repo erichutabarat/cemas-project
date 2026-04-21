@@ -16,6 +16,7 @@ enum QuestionType {
 class FeedbackQuestion {
   final int id;
   final String text;
+  final String category;
   final QuestionType type;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -23,6 +24,7 @@ class FeedbackQuestion {
   FeedbackQuestion({
     required this.id,
     required this.text,
+    required this.category,
     required this.type,
     required this.createdAt,
     required this.updatedAt,
@@ -33,6 +35,7 @@ class FeedbackQuestion {
     return FeedbackQuestion(
       id: json['id'] as int,
       text: json['text'] as String,
+      category: json['category'] as String,
       type: QuestionType.fromString(json['type'] as String),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -44,6 +47,7 @@ class FeedbackQuestion {
     return {
       'id': id,
       'text': text,
+      'category': category,
       'type': type.name,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),

@@ -2,7 +2,8 @@ import 'package:deteksi_cemas/features/dashboard/presentation/widgets/responsive
 import 'package:deteksi_cemas/features/survey/data/models/feedback_models.dart';
 import 'package:deteksi_cemas/features/survey/data/models/guest_models.dart';
 import 'package:deteksi_cemas/features/survey/data/repository/feedback_repository.dart';
-import 'package:deteksi_cemas/theme/color_list.dart'; // Imported for AquaCyan
+import 'package:deteksi_cemas/theme/color_list.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class GuestFeedbackScreen extends StatefulWidget {
@@ -17,14 +18,9 @@ class _GuestFeedbackScreenState extends State<GuestFeedbackScreen> {
   final FeedbackRepository _repository = FeedbackRepository();
   final Map<int, dynamic> _answers = {};
   late Future<List<FeedbackQuestion>> _questionsFuture;
+  final ScrollController _scrollController = ScrollController();
 
-  final List<IconData> _emojis = [
-    Icons.sentiment_very_dissatisfied_rounded,
-    Icons.sentiment_dissatisfied_rounded,
-    Icons.sentiment_neutral_rounded,
-    Icons.sentiment_satisfied_rounded,
-    Icons.sentiment_very_satisfied_rounded,
-  ];
+  int _currentStep = 0; // 0: UEQ, 1: SUS & General
 
   @override
   void initState() {
@@ -32,24 +28,34 @@ class _GuestFeedbackScreenState extends State<GuestFeedbackScreen> {
     _questionsFuture = _repository.fetchFeedbackQuestions();
   }
 
-  bool _isFormValid(List<FeedbackQuestion> questions) {
-    return questions.every((q) {
-      // Check if the question ID exists in our answer map at all
+  List<FeedbackQuestion> _getVisibleQuestions(List<FeedbackQuestion> all) {
+    if (_currentStep == 0) {
+      return all.where((q) => q.category == 'ueq').toList();
+    } else {
+      return all
+          .where((q) => q.category == 'sus' || q.category == 'general')
+          .toList();
+    }
+  }
+
+  bool _isStepValid(List<FeedbackQuestion> visibleQuestions) {
+    return visibleQuestions.every((q) {
       if (!_answers.containsKey(q.id)) return false;
-
       final answer = _answers[q.id];
-
-      if (q.type == QuestionType.scale) {
-        // Must be 1, 2, 3, 4, or 5. If it's 0 or null, it's invalid.
-        return answer is int && answer >= 1 && answer <= 5;
-      }
-
+      if (q.type == QuestionType.scale) return answer is int;
       if (q.type == QuestionType.text) {
-        return answer != null && answer.toString().trim().isNotEmpty;
+        return answer.toString().trim().isNotEmpty;
       }
-
       return true;
     });
+  }
+
+  void _scrollToTop() {
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOut,
+    );
   }
 
   @override
@@ -60,92 +66,32 @@ class _GuestFeedbackScreenState extends State<GuestFeedbackScreen> {
         future: _questionsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text("Error: ${snapshot.error}"));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("Tidak ada pertanyaan tersedia."));
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
           }
-
-          final questions = snapshot.data!;
+          final allQuestions = snapshot.data ?? [];
+          final visibleQuestions = _getVisibleQuestions(allQuestions);
 
           return SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
+            controller: _scrollController,
             child: responsiveLayout(
               content: Column(
                 children: [
-                  // --- SYNCED HEADER FROM SURVEY SCREEN ---
-                  Container(
-                    padding: const EdgeInsets.only(
-                      top: 50,
-                      bottom: 20,
-                      left: 16,
-                      right: 16,
-                    ),
-                    decoration: BoxDecoration(
-                      color: ColorList.aquaCyan,
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(20),
-                        bottomRight: Radius.circular(20),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.shade300,
-                          spreadRadius: 2,
-                          blurRadius: 5,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back_ios_new_rounded,
-                            color: Colors.white,
-                          ),
-                          onPressed: () {
-                            // Instead of popping 3 times, go straight home
-                            Navigator.of(context).pushNamedAndRemoveUntil(
-                              '/survey',
-                              (route) => false,
-                            );
-                          },
-                        ),
-                        const Expanded(
-                          child: Text(
-                            "Feedback Pengguna",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 48), // Balancing the back button
-                      ],
-                    ),
-                  ),
-
+                  _buildHeader(context),
                   Padding(
                     padding: const EdgeInsets.all(20),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildHeaderInfo(),
-                        const SizedBox(height: 32),
-
-                        ...questions.map((question) {
-                          if (question.type == QuestionType.scale) {
-                            return _buildModernRatingCard(question);
-                          } else {
-                            return _buildModernTextField(question);
-                          }
-                        }),
-
+                        _buildStepIndicator(),
                         const SizedBox(height: 24),
-                        _buildModernSubmitButton(questions),
+                        ...visibleQuestions.map(
+                          (q) => q.type == QuestionType.scale
+                              ? _buildScaleCard(q)
+                              : _buildTextField(q),
+                        ),
+                        const SizedBox(height: 24),
+                        _buildNavButtons(visibleQuestions, allQuestions),
                         const SizedBox(height: 40),
                       ],
                     ),
@@ -159,93 +105,127 @@ class _GuestFeedbackScreenState extends State<GuestFeedbackScreen> {
     );
   }
 
-  Widget _buildHeaderInfo() {
+  Widget _buildStepIndicator() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(
-              Icons.rate_review_rounded,
-              color: ColorList.aquaCyan,
-              size: 28,
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              "Bantu Kami Berkembang",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0F172A),
-              ),
-            ),
-          ],
+        Text(
+          _currentStep == 0
+              ? "User Experience Questionnaire (UEQ)"
+              : "System Usability Scale (SUS)",
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+          textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 12),
-        const Text(
-          "Penilaian Anda sangat membantu validasi riset Deteksi Cemas.",
-          style: TextStyle(fontSize: 15, color: Color(0xFF64748B), height: 1.5),
+        const SizedBox(height: 8),
+        LinearProgressIndicator(
+          value: (_currentStep + 1) / 2,
+          backgroundColor: Colors.white24,
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
         ),
       ],
     );
   }
 
-  Widget _buildModernRatingCard(FeedbackQuestion question) {
+  Widget _buildScaleCard(FeedbackQuestion question) {
+    bool isUEQ = question.category == 'ueq';
+    int maxScale = isUEQ ? 7 : 5;
+
+    List<String> ueqLabels = question.text.contains(" — ")
+        ? question.text.split(" — ")
+        : [question.text, ""];
+
     return Card(
-      elevation: 4,
-      margin: const EdgeInsets.only(bottom: 20),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              question.text,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            const SizedBox(height: 20),
+            if (isUEQ) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      ueqLabels[0],
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      ueqLabels[1],
+                      textAlign: TextAlign.right,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ] else
+              Text(
+                question.text,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+
+            const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: List.generate(_emojis.length, (index) {
-                int actualValue =
-                    index + 1; // Scale starts at 1, but index starts at 0
-                bool isSelected = _answers[question.id] == actualValue;
+              children: List.generate(maxScale, (index) {
+                int val = index + 1;
+                bool isSelected = _answers[question.id] == val;
                 return GestureDetector(
-                  onTap: () =>
-                      setState(() => _answers[question.id] = actualValue),
+                  onTap: () => setState(() => _answers[question.id] = val),
                   child: Column(
                     children: [
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.all(12),
+                      Container(
+                        width: isUEQ ? 35 : 45,
+                        height: isUEQ ? 35 : 45,
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? _getColor(index).withOpacity(0.15)
+                              ? ColorList.aquaCyan
                               : Colors.grey.shade100,
                           shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isSelected
+                                ? ColorList.aquaCyan
+                                : Colors.grey.shade300,
+                          ),
                         ),
-                        child: Icon(
-                          _emojis[index],
-                          size: 28,
-                          color: isSelected
-                              ? _getColor(index)
-                              : Colors.grey.shade400,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _getLabel(index),
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          color: isSelected
-                              ? _getColor(index)
-                              : Colors.grey.shade600,
+                        child: Center(
+                          child: Text(
+                            "$val",
+                            style: TextStyle(
+                              color: isSelected ? Colors.white : Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
+                      if (!isUEQ) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          _getSusLabel(val),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 );
@@ -257,157 +237,190 @@ class _GuestFeedbackScreenState extends State<GuestFeedbackScreen> {
     );
   }
 
-  Widget _buildModernTextField(FeedbackQuestion question) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
-          child: Text(
-            question.text,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-        ),
-        Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: TextField(
-            maxLines: 4,
-            onChanged: (val) => setState(() => _answers[question.id] = val),
-            decoration: InputDecoration(
-              hintText: "Ceritakan pengalaman Anda...",
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(color: ColorList.aquaCyan, width: 1.5),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 20),
-      ],
-    );
+  String _getSusLabel(int val) {
+    if (val == 1) return "Sangat Tidak Setuju";
+    if (val == 5) return "Sangat Setuju";
+    return "";
   }
 
-  Widget _buildModernSubmitButton(List<FeedbackQuestion> questions) {
-    final bool valid = _isFormValid(questions);
-    return SizedBox(
-      width: double.infinity,
-      height: 55,
-      child: FilledButton.icon(
-        onPressed: valid ? () => _submitFeedback(questions) : null,
-        style: FilledButton.styleFrom(
-          backgroundColor: ColorList.aquaCyan,
-          disabledBackgroundColor: Colors.grey.shade300,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-        icon: const Icon(Icons.send_rounded),
-        label: const Text(
-          "Kirim Feedback",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  Widget _buildTextField(FeedbackQuestion question) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              question.text,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              maxLines: 3,
+              onChanged: (v) => setState(() => _answers[question.id] = v),
+              decoration: const InputDecoration(
+                hintText: "Masukkan saran...",
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Color _getColor(int index) {
-    const colors = [
-      Color(0xFFF87171), // Red
-      Color(0xFFFB923C), // Orange
-      Color(0xFFFBBF24), // Yellow
-      Color(0xFF4ADE80), // Light Green
-      Color(0xFF22C55E), // Green
-    ];
-    return colors[index];
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.only(top: 40, bottom: 10),
+      decoration: const BoxDecoration(
+        color: Colors.blue,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => _currentStep > 0
+                ? setState(() => _currentStep = 0)
+                : Navigator.pop(context),
+          ),
+          const Text(
+            "Feedback Pengguna",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-  String _getLabel(int index) {
-    const labels = ["Buruk", "Kurang", "Cukup", "Baik", "Sangat Baik"];
-    return labels[index];
+  Widget _buildNavButtons(
+    List<FeedbackQuestion> currentSet,
+    List<FeedbackQuestion> all,
+  ) {
+    bool canProceed = _isStepValid(currentSet);
+    return Row(
+      children: [
+        if (_currentStep > 0)
+          Expanded(
+            child: TextButton(
+              onPressed: () => setState(() => _currentStep = 0),
+              child: const Text(
+                "Kembali",
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+          ),
+        Expanded(
+          flex: 2,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: canProceed
+                ? () => _currentStep == 0
+                      ? setState(() {
+                          _currentStep = 1;
+                          _scrollToTop();
+                        })
+                      : _submitFeedback(all)
+                : null,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                _currentStep == 0 ? "Selanjutnya" : "Kirim Feedback",
+                style: TextStyle(fontSize: 18),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
-  // Inside _GuestFeedbackScreenState
-  void _submitFeedback(List<FeedbackQuestion> questions) async {
-    // Show loading
+  void _submitFeedback(List<FeedbackQuestion> allQuestions) async {
+    // 1. Tampilkan Loading Dialog
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+      builder: (context) =>
+          const Center(child: CircularProgressIndicator(color: Colors.white)),
     );
 
     try {
-      // Transform the _answers map into the format:
-      // { "feedback_question_id": id, "response": "value" }
+      // 2. Transformasi _answers (Map<int, dynamic>) ke List<Map<String, dynamic>>
+      // Sesuai format: { "feedback_question_id": id, "response": "value" }
       final List<Map<String, dynamic>> feedbackData = _answers.entries.map((
         entry,
       ) {
         return {
           "feedback_question_id": entry.key,
-          // .toString() ensures that even rating indices (int) are sent as Strings
-          // to match your JSON example: "response": "1"
-          "response": entry.value.toString(),
+          "response": entry.value
+              .toString(), // Pastikan dikirim sebagai String sesuai JSON target
         };
       }).toList();
 
+      // 3. Siapkan Data Guest (Gunakan data dari widget.guest atau fallback default)
+      final guestData = widget.guest;
+
+      // debug data
+      if (kDebugMode) {
+        print("Guest Data:");
+        print("Name: ${guestData.name}");
+        print("Email: ${guestData.email}");
+        print("Gender: ${guestData.gender}");
+        print("Age: ${guestData.age}");
+        print("Prodi: ${guestData.prodi}");
+        print("NIM: ${guestData.nim}");
+        print("Phone Number: ${guestData.phoneNumber}");
+        print("Feedback Data:");
+      }
+
+      // 4. Panggil Repository
       await _repository.submitFeedback(
-        guest: widget.guest,
+        guest: guestData,
         feedbacks: feedbackData,
       );
 
       if (!mounted) return;
-      Navigator.pop(context); // Pop loading
+      Navigator.pop(context); // Tutup loading dialog
 
-      // Show Success Dialog
+      // 5. Tampilkan Dialog Sukses
       _showSuccessDialog();
     } catch (e) {
       if (!mounted) return;
-      Navigator.pop(context); // Pop loading
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Gagal mengirim feedback: $e")));
+      Navigator.pop(context); // Tutup loading dialog
+
+      // Tampilkan Error Snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Gagal mengirim feedback: $e"),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     }
   }
 
   void _showSuccessDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Icon(
-          Icons.check_circle_rounded,
-          color: ColorList.aquaCyan,
-          size: 60,
-        ),
-        content: const Text(
-          "Terima kasih atas partisipasi Anda!",
-          textAlign: TextAlign.center,
-        ),
+      builder: (c) => AlertDialog(
+        title: const Text("Berhasil"),
+        content: const Text("Terima kasih atas feedback Anda!"),
         actions: [
-          Center(
-            child: TextButton(
-              onPressed: () {
-                // Instead of popping 3 times, go straight home
-                Navigator.of(
-                  context,
-                ).pushNamedAndRemoveUntil('/survey', (route) => false);
-              },
-              child: Text(
-                "Selesai",
-                style: TextStyle(
-                  color: ColorList.aquaCyan,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+          TextButton(
+            onPressed: () => Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil('/survey', (r) => false),
+            child: const Text("OK"),
           ),
         ],
       ),
