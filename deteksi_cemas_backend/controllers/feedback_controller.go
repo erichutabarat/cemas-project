@@ -54,8 +54,8 @@ func (fc *FeedbackController) SubmitFeedback(c *gin.Context) {
             // --- VALIDATION LOGIC ---
             if question.Type == "scale" {
                 score, err := strconv.Atoi(requestBody.Feedbacks[i].Response)
-                if err != nil || score < 1 || score > 5 {
-                    return fmt.Errorf("question '%s' requires a score between 1-5, got: '%s'", question.Text, requestBody.Feedbacks[i].Response)
+                if err != nil || score < 1 || score > 7 {
+                    return fmt.Errorf("question '%s' requires a score between 1-7, got: '%s'", question.Text, requestBody.Feedbacks[i].Response)
                 }
             }
             // ------------------------
@@ -73,4 +73,44 @@ func (fc *FeedbackController) SubmitFeedback(c *gin.Context) {
     }
 
     c.JSON(200, gin.H{"message": "Feedback submitted successfully"})
+}
+
+func (fc *FeedbackController) GetFeedbackResponses(c *gin.Context) {
+	category := c.Query("category")
+
+	// DTO biar field clean
+	type FeedbackResponseDTO struct {
+		ID                 uint   `json:"id"`
+		GuestID            int    `json:"guest_id"`
+		FeedbackQuestionID int    `json:"feedback_question_id"`
+		Response           string `json:"response"`
+		QuestionText       string `json:"question_text"`
+		Category           string `json:"category"`
+	}
+
+	var results []FeedbackResponseDTO
+
+	query := fc.DB.
+		Table("feedback_responses").
+		Select(`
+			feedback_responses.id,
+			feedback_responses.guest_id,
+			feedback_responses.feedback_question_id,
+			feedback_responses.response,
+			feedback_questions.text as question_text,
+			feedback_questions.category
+		`).
+		Joins("JOIN feedback_questions ON feedback_questions.id = feedback_responses.feedback_question_id")
+
+	// filter category
+	if category != "" {
+		query = query.Where("feedback_questions.category = ?", category)
+	}
+
+	if err := query.Scan(&results).Error; err != nil {
+		c.JSON(500, gin.H{"error": "Failed to retrieve feedback responses"})
+		return
+	}
+
+	c.JSON(200, results)
 }

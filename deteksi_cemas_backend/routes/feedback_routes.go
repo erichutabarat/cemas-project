@@ -11,6 +11,7 @@ func SetupFeedbackRoutes(r *gin.Engine, db *gorm.DB) {
 	feedbackController := controllers.NewFeedbackController(db)
 
 	feedback := r.Group("/api/feedback")
+	feedback.GET("/responses", feedbackController.GetFeedbackResponses)
 	feedback.GET("/questions", feedbackController.GetFeedbackQuestions)
 	feedback.POST("/submit", feedbackController.SubmitFeedback)
 }
