@@ -27,52 +27,74 @@ func (fc *FeedbackController) GetFeedbackQuestions(c *gin.Context) {
 }
 
 func (fc *FeedbackController) SubmitFeedback(c *gin.Context) {
-    var requestBody struct {
-        Guest     models.Guest              `json:"guest" binding:"required"`
-        Feedbacks []models.FeedbackResponse `json:"feedbacks" binding:"required"`
-    }
+	var requestBody struct {
+		Guest     models.Guest              `json:"guest" binding:"required"`
+		Feedbacks []models.FeedbackResponse `json:"feedbacks" binding:"required"`
+	}
 
-    if err := c.ShouldBindJSON(&requestBody); err != nil {
-        c.JSON(400, gin.H{"error": err.Error()})
-        return
-    }
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
 
-    err := fc.DB.Transaction(func(tx *gorm.DB) error {
-        // 1. Create the Guest
-        if err := tx.Create(&requestBody.Guest).Error; err != nil {
-            return err
-        }
+	err := fc.DB.Transaction(func(tx *gorm.DB) error {
+		var guest models.Guest
 
-        // 2. Validate and Link Feedbacks
-        for i := range requestBody.Feedbacks {
-            // Find the question to check its type
-            var question models.FeedbackQuestion
-            if err := tx.First(&question, requestBody.Feedbacks[i].FeedbackQuestionID).Error; err != nil {
-                return fmt.Errorf("question ID %d not found", requestBody.Feedbacks[i].FeedbackQuestionID)
-            }
+		// 1. Cek apakah email sudah ada
+		err := tx.Where("email = ?", requestBody.Guest.Email).First(&guest).Error
 
-            // --- VALIDATION LOGIC ---
-            if question.Type == "scale" {
-                score, err := strconv.Atoi(requestBody.Feedbacks[i].Response)
-                if err != nil || score < 1 || score > 7 {
-                    return fmt.Errorf("question '%s' requires a score between 1-7, got: '%s'", question.Text, requestBody.Feedbacks[i].Response)
-                }
-            }
-            // ------------------------
+		if err != nil {
+			if err == gorm.ErrRecordNotFound {
+				// kalau belum ada → create baru
+				if err := tx.Create(&requestBody.Guest).Error; err != nil {
+					return err
+				}
+				guest = requestBody.Guest
+			} else {
+				return err
+			}
+		}
+		// kalau ada → pakai guest yang ditemukan
 
-            requestBody.Feedbacks[i].GuestID = requestBody.Guest.ID
-        }
+		// 2. Validate dan assign GuestID
+		for i := range requestBody.Feedbacks {
+			var question models.FeedbackQuestion
 
-        // 3. Batch insert
-        return tx.Create(&requestBody.Feedbacks).Error
-    })
+			if err := tx.First(&question, requestBody.Feedbacks[i].FeedbackQuestionID).Error; err != nil {
+				return fmt.Errorf("question ID %d not found", requestBody.Feedbacks[i].FeedbackQuestionID)
+			}
 
-    if err != nil {
-        c.JSON(400, gin.H{"error": err.Error()})
-        return
-    }
+			// VALIDATION
+			if question.Type == "scale" {
+				score, err := strconv.Atoi(requestBody.Feedbacks[i].Response)
+				if err != nil {
+					return fmt.Errorf("invalid score format")
+				}
 
-    c.JSON(200, gin.H{"message": "Feedback submitted successfully"})
+				// beda skala UEQ & SUS
+				if question.Category == "ueq" && (score < 1 || score > 7) {
+					return fmt.Errorf("UEQ requires score 1-7")
+				}
+
+				if question.Category == "sus" && (score < 1 || score > 5) {
+					return fmt.Errorf("SUS requires score 1-5")
+				}
+			}
+
+			// assign guest id (existing / new)
+			requestBody.Feedbacks[i].GuestID = guest.ID
+		}
+
+		// 3. insert feedback
+		return tx.Create(&requestBody.Feedbacks).Error
+	})
+
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{"message": "Feedback submitted successfully"})
 }
 
 func (fc *FeedbackController) GetFeedbackResponses(c *gin.Context) {
