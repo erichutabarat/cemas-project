@@ -29,7 +29,7 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
     String fileName = rawUrl.split('/').last;
 
     // 3. Combine with your real production domain
-    final productionUrl = "https://erichutabarat.my.id/uploads/$fileName";
+    final productionUrl = "https://deteksicemas.my.id/uploads/$fileName";
 
     try {
       await _audioPlayer.setUrl(productionUrl);
