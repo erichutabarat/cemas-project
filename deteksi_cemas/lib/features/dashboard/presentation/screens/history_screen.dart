@@ -2,6 +2,7 @@ import 'package:deteksi_cemas/features/dashboard/data/models/medical_record_mode
 import 'package:deteksi_cemas/features/dashboard/domain/repository/history_repository.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/screens/inspection_detail_screen.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/medical_history_card.dart';
+import 'package:deteksi_cemas/features/dashboard/presentation/widgets/responsive_layout.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/shaded_line.dart';
 import 'package:deteksi_cemas/l10n/app_localizations.dart';
 import 'package:deteksi_cemas/theme/color_list.dart';
@@ -168,8 +169,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) {
-                                        return InspectionDetailScreen(
-                                          record: item,
+                                        return responsiveLayout(
+                                          content: InspectionDetailScreen(
+                                            record: item,
+                                          ),
                                         );
                                       },
                                     ),
