@@ -69,8 +69,12 @@ class _DashboardAdminLayoutState extends State<DashboardAdminLayout> {
             },
             items: [
               _buildNavItem(Icons.home_rounded, "Home", 0),
-              _buildNavItem(Icons.medical_services_rounded, "Medical", 1),
-              _buildNavItem(Icons.quiz_rounded, "Questions", 2),
+              _buildNavItem(
+                Icons.medical_services_rounded,
+                "Medical Record",
+                1,
+              ),
+              _buildNavItem(Icons.quiz_rounded, "HARS Survey", 2),
               _buildNavItem(Icons.article_rounded, "Articles", 3),
               _buildNavItem(Icons.settings_rounded, "Settings", 4),
             ],
