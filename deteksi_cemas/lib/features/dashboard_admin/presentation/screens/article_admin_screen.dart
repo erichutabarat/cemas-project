@@ -1,3 +1,6 @@
+import 'package:deteksi_cemas/features/dashboard_admin/data/models/article_model.dart';
+import 'package:deteksi_cemas/features/dashboard_admin/domain/repository/article_repository.dart';
+import 'package:deteksi_cemas/features/onboarding/domain/repository/backend_repository.dart';
 import 'package:flutter/material.dart';
 
 class ArticleAdminScreen extends StatefulWidget {
@@ -8,24 +11,39 @@ class ArticleAdminScreen extends StatefulWidget {
 }
 
 class _ArticleAdminScreenState extends State<ArticleAdminScreen> {
-  // Data gabungan dari makanan dan aktivitas berdasarkan JSON Anda
-  final List<Map<String, dynamic>> _articles = [
-    {
-      "id": 1,
-      "name": "Dark Chocolate",
-      "image_url":
-          "https://via.placeholder.com/150", // Ganti dengan basis URL VPS Anda
-      "description": "Dark chocolate contains antioxidants and flavonoids...",
-      "anxiety_level": "Moderate Anxiety",
-    },
-    {
-      "id": 1,
-      "name": "Deep Breathing Exercises",
-      "image_url": "https://via.placeholder.com/150",
-      "description": "Deep breathing helps calm your nervous system...",
-      "anxiety_level": "High Anxiety",
-    },
-  ];
+  late String _backendUrl;
+  List<ArticleModel> _articles = [];
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchBackendUrl();
+    _fetchArticles();
+  }
+
+  Future<void> _fetchArticles() async {
+    setState(() => _loading = true);
+    try {
+      final articles = await ArticleRepository().fetchArticles();
+      if (!mounted) return;
+      setState(() {
+        _articles = articles;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal memuat artikel: $e')));
+    }
+  }
+
+  void _fetchBackendUrl() async {
+    final url = await BackendRepository.getBackendUrl();
+    setState(() => _backendUrl = url);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,10 +58,7 @@ class _ArticleAdminScreenState extends State<ArticleAdminScreen> {
         foregroundColor: const Color(0xFF1E293B),
         elevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {}, // Filter berdasarkan kategori (Food/Activity)
-          ),
+          IconButton(icon: const Icon(Icons.filter_list), onPressed: () {}),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -51,18 +66,25 @@ class _ArticleAdminScreenState extends State<ArticleAdminScreen> {
         onPressed: () => _showArticleForm(context),
         child: const Icon(Icons.add, color: Colors.white),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _articles.length,
-        itemBuilder: (context, index) {
-          final item = _articles[index];
-          return _buildArticleCard(item);
-        },
-      ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _articles.isEmpty
+          ? const Center(
+              child: Text(
+                'Tidak ada artikel',
+                style: TextStyle(color: Colors.grey),
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _articles.length,
+              itemBuilder: (context, index) =>
+                  _buildArticleCard(_articles[index]),
+            ),
     );
   }
 
-  Widget _buildArticleCard(Map<String, dynamic> item) {
+  Widget _buildArticleCard(ArticleModel item) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -79,11 +101,11 @@ class _ArticleAdminScreenState extends State<ArticleAdminScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image Preview
+          // Image preview
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             child: Image.network(
-              item['image_url'],
+              '$_backendUrl${item.url}',
               height: 150,
               width: double.infinity,
               fit: BoxFit.cover,
@@ -106,8 +128,10 @@ class _ArticleAdminScreenState extends State<ArticleAdminScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildLevelBadge(item['anxiety_level']),
+                    _buildLevelBadge(item.anxietyLevel),
+                    // ✅ Two separate IconButtons, not nested
                     Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
                           icon: const Icon(
@@ -115,7 +139,8 @@ class _ArticleAdminScreenState extends State<ArticleAdminScreen> {
                             color: Colors.blue,
                             size: 20,
                           ),
-                          onPressed: () {},
+                          onPressed: () =>
+                              _showArticleForm(context, article: item),
                         ),
                         IconButton(
                           icon: const Icon(
@@ -123,7 +148,7 @@ class _ArticleAdminScreenState extends State<ArticleAdminScreen> {
                             color: Colors.red,
                             size: 20,
                           ),
-                          onPressed: () {},
+                          onPressed: () => _confirmDelete(item),
                         ),
                       ],
                     ),
@@ -131,7 +156,7 @@ class _ArticleAdminScreenState extends State<ArticleAdminScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  item['name'],
+                  item.name,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -139,7 +164,7 @@ class _ArticleAdminScreenState extends State<ArticleAdminScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  item['description'],
+                  item.description,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: Colors.grey[600], fontSize: 13),
@@ -153,7 +178,11 @@ class _ArticleAdminScreenState extends State<ArticleAdminScreen> {
   }
 
   Widget _buildLevelBadge(String level) {
-    Color color = level.contains("High") ? Colors.red : Colors.orange;
+    final color = level.toLowerCase().contains("high")
+        ? Colors.red
+        : level.toLowerCase().contains("moderate")
+        ? Colors.orange
+        : Colors.green;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -171,8 +200,41 @@ class _ArticleAdminScreenState extends State<ArticleAdminScreen> {
     );
   }
 
-  // Form sederhana untuk Tambah/Edit
-  void _showArticleForm(BuildContext context) {
+  void _confirmDelete(ArticleModel item) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Hapus artikel?"),
+        content: Text("\"${item.name}\" akan dihapus secara permanen."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Batal"),
+          ),
+          TextButton(
+            onPressed: () {
+              // TODO: call delete API then _fetchArticles()
+              Navigator.pop(context);
+            },
+            child: const Text("Hapus", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showArticleForm(BuildContext context, {ArticleModel? article}) {
+    final nameController = TextEditingController(text: article?.name ?? '');
+    final levelController = TextEditingController(
+      text: article?.anxietyLevel ?? '',
+    );
+    final descController = TextEditingController(
+      text: article?.description ?? '',
+    );
+    final urlController = TextEditingController(text: article?.url ?? '');
+
+    final isEdit = article != null;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -190,12 +252,13 @@ class _ArticleAdminScreenState extends State<ArticleAdminScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Tambah Artikel Baru",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Text(
+              isEdit ? "Edit Artikel" : "Tambah Artikel Baru",
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
             TextField(
+              controller: nameController,
               decoration: InputDecoration(
                 labelText: "Nama Artikel",
                 border: OutlineInputBorder(
@@ -205,8 +268,9 @@ class _ArticleAdminScreenState extends State<ArticleAdminScreen> {
             ),
             const SizedBox(height: 12),
             TextField(
+              controller: levelController,
               decoration: InputDecoration(
-                labelText: "Anxiety Level (Low/Moderate/High)",
+                labelText: "Anxiety Level (Low / Moderate / High)",
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -214,6 +278,17 @@ class _ArticleAdminScreenState extends State<ArticleAdminScreen> {
             ),
             const SizedBox(height: 12),
             TextField(
+              controller: urlController,
+              decoration: InputDecoration(
+                labelText: "URL Gambar",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: descController,
               maxLines: 3,
               decoration: InputDecoration(
                 labelText: "Deskripsi",
@@ -233,10 +308,13 @@ class _ArticleAdminScreenState extends State<ArticleAdminScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                onPressed: () => Navigator.pop(context),
-                child: const Text(
-                  "Simpan Artikel",
-                  style: TextStyle(color: Colors.white),
+                onPressed: () {
+                  // TODO: call create/update API with controller values
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  isEdit ? "Simpan Perubahan" : "Simpan Artikel",
+                  style: const TextStyle(color: Colors.white),
                 ),
               ),
             ),
