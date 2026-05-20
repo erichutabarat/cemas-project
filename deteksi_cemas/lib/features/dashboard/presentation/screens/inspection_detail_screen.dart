@@ -1,3 +1,4 @@
+import 'package:deteksi_cemas/features/dashboard/domain/repository/heartbeat_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:just_audio/just_audio.dart';
@@ -376,6 +377,7 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
   }
 
   void _handleAnalyzeNow(BuildContext context) async {
+    final heartbearRepo = HeartbeatRepository();
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -385,15 +387,26 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
     try {
       // Logic for triggering analysis goes here
       await Future.delayed(const Duration(seconds: 2));
-
-      if (context.mounted) {
-        Navigator.pop(context); // Close loading
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Analysis complete! Please refresh history."),
-          ),
-        );
-        Navigator.pop(context); // Return to list
+      bool success = await heartbearRepo.analyzeHeartbeat(widget.record.id);
+      if (success) {
+        if (context.mounted) {
+          Navigator.pop(context); // Close loading
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Analysis complete! Please refresh history."),
+            ),
+          );
+          Navigator.pop(context); // Return to list
+        }
+      } else {
+        if (context.mounted) {
+          Navigator.pop(context); // Close loading
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Analysis failed. Please try again later."),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (context.mounted) {

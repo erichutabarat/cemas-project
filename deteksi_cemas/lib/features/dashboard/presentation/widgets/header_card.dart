@@ -7,23 +7,70 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class HeaderCard extends StatelessWidget {
   final String name;
+  final Future<Map<String, dynamic>> historyFuture;
 
-  const HeaderCard({super.key, required this.name});
+  const HeaderCard({
+    super.key,
+    required this.name,
+    required this.historyFuture,
+  });
+
+  // ── Colour helper ──────────────────────────────────────────────────────────
+  Color _levelColor(String level) {
+    switch (level.toLowerCase()) {
+      case 'normal':
+        return Colors.green.shade600;
+      case 'mild anxiety':
+        return Colors.yellow.shade700;
+      case 'moderate anxiety':
+        return Colors.orange.shade600;
+      case 'severe anxiety':
+      case 'very serious anxiety':
+        return Colors.red.shade600;
+      default:
+        return Colors.grey.shade500;
+    }
+  }
+
+  // ── Data parser ────────────────────────────────────────────────────────────
+  Map<String, dynamic> _parseHistory(Map<String, dynamic> json) {
+    final harsResults = List<Map<String, dynamic>>.from(
+      json['hars_results'] ?? [],
+    );
+    final inspections = List<Map<String, dynamic>>.from(
+      json['inspections'] ?? [],
+    );
+
+    final sortedHars = List<Map<String, dynamic>>.from(harsResults)
+      ..sort((a, b) {
+        final aDate = DateTime.tryParse(a['CreatedAt'] ?? '') ?? DateTime(0);
+        final bDate = DateTime.tryParse(b['CreatedAt'] ?? '') ?? DateTime(0);
+        return bDate.compareTo(aDate);
+      });
+
+    final latestHars = sortedHars.isNotEmpty ? sortedHars.first : null;
+
+    return {
+      'totalHars': harsResults.length,
+      'totalInspections': inspections.length,
+      'latestScore': latestHars?['score'] as int?,
+      'latestLevel': latestHars?['level'] as String? ?? '-',
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     const double headerHeight = 200.0;
     const double cardHeight = 100.0;
-
-    const double totalStackHeight = headerHeight;
     final double topPadding = MediaQuery.of(context).padding.top;
 
-    return Container(
-      height: totalStackHeight,
+    return SizedBox(
+      height: headerHeight,
       child: Stack(
         clipBehavior: Clip.none,
         children: <Widget>[
+          // ── Cyan header background ──────────────────────────────────────
           Container(
             height: headerHeight - (cardHeight / 2),
             decoration: BoxDecoration(
@@ -43,6 +90,7 @@ class HeaderCard extends StatelessWidget {
             ),
           ),
 
+          // ── Greeting row ────────────────────────────────────────────────
           Positioned(
             top: topPadding + 10,
             left: 20,
@@ -52,7 +100,6 @@ class HeaderCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    // User Profile Icon
                     const Icon(
                       Icons.account_circle_rounded,
                       size: 40,
@@ -64,11 +111,14 @@ class HeaderCard extends StatelessWidget {
                       children: [
                         Text(
                           l10n.welcome_back,
-                          style: TextStyle(fontSize: 16, color: Colors.white70),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.white70,
+                          ),
                         ),
                         Text(
                           name,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -78,7 +128,6 @@ class HeaderCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                // Notification Icon
                 const Icon(
                   Icons.notifications_rounded,
                   size: 35,
@@ -88,14 +137,14 @@ class HeaderCard extends StatelessWidget {
             ),
           ),
 
-          // 3. Quick Information Card (Widget Two - Overlapping)
+          // ── History summary card (overlapping) ──────────────────────────
           Positioned(
             bottom: 0,
             left: 20,
             right: 20,
             child: Container(
               height: cardHeight,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 15),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(15),
                 color: Colors.white,
@@ -108,28 +157,71 @@ class HeaderCard extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildQuickInfoItem(
-                    icon: FontAwesomeIcons.solidHeart,
-                    color: Colors.red.shade600,
-                    label: "HR",
-                    value: "80 bpm",
-                  ),
-                  _buildQuickInfoItem(
-                    icon: FontAwesomeIcons.heartPulse,
-                    color: Colors.red.shade600,
-                    label: "BPM",
-                    value: "120/80",
-                  ),
-                  _buildQuickInfoItem(
-                    icon: FontAwesomeIcons.stethoscope,
-                    color: Colors.red.shade600,
-                    label: "Score",
-                    value: "95",
-                  ),
-                ],
+              child: FutureBuilder<Map<String, dynamic>>(
+                future: historyFuture,
+                builder: (context, snapshot) {
+                  // ── Loading ──
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2.5),
+                      ),
+                    );
+                  }
+
+                  // ── Error ──
+                  if (snapshot.hasError || !snapshot.hasData) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: Colors.red.shade400,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Failed to load history',
+                          style: TextStyle(
+                            color: Colors.red.shade400,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+
+                  // ── Data ──
+                  final stats = _parseHistory(snapshot.data!);
+                  final latestLevel = stats['latestLevel'] as String;
+
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildInfoItem(
+                        icon: FontAwesomeIcons.clipboardList,
+                        color: ColorList.aquaCyan,
+                        label: 'HARS Tests',
+                        value: '${stats['totalHars']}',
+                      ),
+                      _buildDivider(),
+                      _buildInfoItem(
+                        icon: FontAwesomeIcons.heartPulse,
+                        color: Colors.indigo.shade400,
+                        label: 'Inspections',
+                        value: '${stats['totalInspections']}',
+                      ),
+                      _buildDivider(),
+                      _buildLatestScore(
+                        score: stats['latestScore'],
+                        level: latestLevel,
+                        levelColor: _levelColor(latestLevel),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ),
@@ -138,37 +230,95 @@ class HeaderCard extends StatelessWidget {
     );
   }
 
-  // Helper function remains the same
-  Widget _buildQuickInfoItem({
+  // ── Helpers ──────────────────────────────────────────────────────────────
+
+  Widget _buildInfoItem({
     required IconData icon,
     required Color color,
     required String label,
     required String value,
   }) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FaIcon(icon, color: color, size: 22),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w500,
-            color: Colors.black87,
+    return Expanded(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FaIcon(icon, color: color, size: 16),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+              ),
+            ],
           ),
-        ),
-      ],
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  Widget _buildLatestScore({
+    required int? score,
+    required String level,
+    required Color levelColor,
+  }) {
+    return Expanded(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FaIcon(FontAwesomeIcons.chartLine, color: levelColor, size: 16),
+              const SizedBox(width: 6),
+              Text(
+                'Latest Score',
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            score != null ? '$score' : '-',
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+            decoration: BoxDecoration(
+              color: levelColor.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              level,
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                color: levelColor,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(width: 1, height: 45, color: Colors.grey.shade200);
   }
 }

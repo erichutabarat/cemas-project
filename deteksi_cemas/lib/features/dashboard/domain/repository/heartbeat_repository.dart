@@ -29,4 +29,31 @@ class HeartbeatRepository {
       throw Exception('Failed to upload heartbeat data');
     }
   }
+
+  Future<bool> analyzeHeartbeat(int inspectionID) async {
+    final String apiurl = await BackendRepository.getBackendUrl();
+    final Uri analyzeUrl = Uri.parse('$apiurl/api/heartbeat/analyze');
+    final token = await tokenService.readToken();
+    if (token == null) {
+      throw Exception('Authorization token not found.');
+    }
+
+    // 1. Tambahkan Content-Type di headers
+    final headers = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+
+    // 2. Bungkus data ke dalam format JSON String
+    final body = jsonEncode({'inspection_id': inspectionID});
+
+    // 3. Kirim request dengan menyertakan body
+    final response = await http.post(analyzeUrl, headers: headers, body: body);
+
+    if (response.statusCode != 200) {
+      return false;
+    } else {
+      return true;
+    }
+  }
 }

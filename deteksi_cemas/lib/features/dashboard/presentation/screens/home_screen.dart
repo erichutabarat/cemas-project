@@ -2,6 +2,7 @@
 
 import 'package:deteksi_cemas/features/dashboard/data/models/article_model.dart';
 import 'package:deteksi_cemas/features/dashboard/domain/repository/recommendation_repository.dart';
+import 'package:deteksi_cemas/features/dashboard/domain/repository/user_repository.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/article_card.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/header_card.dart';
 import 'package:deteksi_cemas/l10n/app_localizations.dart';
@@ -31,6 +32,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final recommendationRepo = RecommendationRepository();
+  final userRepo = UserRepository();
   List<ArticleModel> activityArticles = [];
   List<ArticleModel> foodArticles = [];
   bool isLoading = true; // Track loading state
@@ -105,7 +107,10 @@ class _HomeScreenState extends State<HomeScreen> {
           controller: widget.controller,
           child: Column(
             children: [
-              HeaderCard(name: widget.name),
+              HeaderCard(
+                name: widget.name,
+                historyFuture: userRepo.fetchUserHistory(),
+              ),
               SizedBox(height: 20),
               quickMenu(context),
               SizedBox(height: 20),

@@ -168,16 +168,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) {
-                                        return responsiveLayout(
-                                          content: InspectionDetailScreen(
-                                            record: item,
-                                          ),
-                                        );
-                                      },
+                                      builder: (context) => responsiveLayout(
+                                        content: InspectionDetailScreen(
+                                          record: item,
+                                        ),
+                                      ),
                                     ),
-                                  );
+                                  ).then(
+                                    (_) => _loadMedicalRecords(),
+                                  ); // ← add this
                                 },
+
                                 child: MedicalHistoryCard(medicalRecord: item),
                               );
                             },

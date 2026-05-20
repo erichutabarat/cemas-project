@@ -1,6 +1,7 @@
 import 'package:deteksi_cemas/features/dashboard/data/models/userprofile_model.dart';
 import 'package:deteksi_cemas/features/dashboard/domain/services/token_service.dart';
 import 'package:deteksi_cemas/features/onboarding/domain/repository/backend_repository.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -55,6 +56,24 @@ class UserRepository {
     }
   }
 
+  Future<Map<String, dynamic>> fetchUserHistory() async {
+    final String apiurl = await BackendRepository.getBackendUrl();
+    final url = Uri.parse('$apiurl/api/user/history');
+    final token = await tokenService.readToken();
+    if (token == null) {
+      throw Exception('Authorization token not found.');
+    }
+    final headers = {'Authorization': 'Bearer $token'};
+
+    final response = await http.get(url, headers: headers);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('Failed to load users: ${response.statusCode}');
+    }
+  }
+
   Future<void> deleteSurveyResultByID(int id) async {
     final String apiurl = await BackendRepository.getBackendUrl();
     final url = Uri.parse('$apiurl/api/assessment/result/$id');
@@ -84,7 +103,9 @@ class UserRepository {
       throw Exception('Authorization token not found.');
     }
 
-    print("request body: ${profile.toJson()}");
+    if (kDebugMode) {
+      print("request body: ${profile.toJson()}");
+    }
 
     final headers = {
       'Authorization': 'Bearer $token',
@@ -95,7 +116,9 @@ class UserRepository {
 
     final response = await http.put(url, headers: headers, body: body);
 
-    print("response body: ${response.body}");
+    if (kDebugMode) {
+      print("response body: ${response.body}");
+    }
 
     if (response.statusCode == 200) {
       return true;
