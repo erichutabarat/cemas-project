@@ -2,6 +2,7 @@ import 'package:deteksi_cemas/features/dashboard/presentation/widgets/responsive
 import 'package:deteksi_cemas/features/survey/data/models/assessment_results_models.dart';
 import 'package:deteksi_cemas/features/survey/data/models/guest_models.dart';
 import 'package:deteksi_cemas/features/survey/presentation/screens/guest_feedback_screen.dart';
+import 'package:deteksi_cemas/features/survey/presentation/widgets/article_recommendation.dart';
 import 'package:deteksi_cemas/features/survey/presentation/widgets/get_icon_level.dart';
 import 'package:deteksi_cemas/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -197,6 +198,11 @@ class _GuestHarsResultScreenState extends State<GuestHarsResultScreen> {
                         ),
                         const SizedBox(height: 40),
 
+                        ArticleRecommendation(
+                          level: widget.result!.anxietyLevel,
+                        ),
+
+                        const SizedBox(height: 40),
                         // Action Button
                         SizedBox(
                           width: double.infinity,

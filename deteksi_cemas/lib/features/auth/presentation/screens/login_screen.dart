@@ -218,7 +218,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           height: MediaQuery.of(context).viewInsets.bottom,
                         ),
 
-                        // Inside your LoginScreen's ListView
                         OutlinedButton(
                           style: OutlinedButton.styleFrom(
                             backgroundColor: Colors.white,
@@ -232,7 +231,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             side: BorderSide(color: ColorList.emeraldBLue),
                           ),
                           onPressed: () {
-                            // Simply navigate to the processing screen
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -258,6 +256,30 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                             ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _navigateToGuesSurvey,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              backgroundColor: ColorList.emeraldBLue,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text(
+                              'HARS Survey (Tamu)',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -355,5 +377,11 @@ class _LoginScreenState extends State<LoginScreen> {
         ],
       ),
     );
+  }
+
+  void _navigateToGuesSurvey() {
+    if (mounted) {
+      Navigator.of(context).pushNamed("/survey");
+    }
   }
 }

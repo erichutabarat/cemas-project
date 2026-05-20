@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:deteksi_cemas/features/dashboard/data/models/userprofile_model.dart';
 import 'package:deteksi_cemas/features/dashboard/domain/repository/user_repository.dart';
 import 'package:deteksi_cemas/features/dashboard/domain/services/token_service.dart';
@@ -154,7 +156,7 @@ class _SettingScreenState extends State<SettingScreen> {
                       const Spacer(),
                       IconButton(
                         icon: const Icon(Icons.edit_outlined),
-                        onPressed: () => _onNavigate('Edit Profile'),
+                        onPressed: () => _showEditProfileModal(user),
                       ),
                     ],
                   ),
@@ -278,6 +280,299 @@ class _SettingScreenState extends State<SettingScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  void _showEditProfileModal(UserProfile user) {
+    final formKey = GlobalKey<FormState>();
+    final nameController = TextEditingController(text: user.name);
+    final emailController = TextEditingController(text: user.email);
+    final addressController = TextEditingController(text: user.address ?? '');
+    final jobController = TextEditingController(text: user.job ?? '');
+
+    String selectedGender = user.gender;
+    DateTime selectedBirthdate = user.birthdate;
+    bool isSaving = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          Future<void> pickDate() async {
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: selectedBirthdate,
+              firstDate: DateTime(1900),
+              lastDate: DateTime.now(),
+            );
+            if (picked != null) setModalState(() => selectedBirthdate = picked);
+          }
+
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              left: 20,
+              right: 20,
+              top: 20,
+            ),
+            child: Form(
+              key: formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Header ────────────────────────────────────────
+                    Row(
+                      children: [
+                        const Text(
+                          'Edit Profil',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+
+                    // ── Avatar ────────────────────────────────────────
+                    Center(
+                      child: CircleAvatar(
+                        radius: 36,
+                        backgroundColor: Theme.of(
+                          context,
+                        ).primaryColor.withOpacity(0.15),
+                        child: Icon(
+                          Icons.person,
+                          size: 36,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ── Name ──────────────────────────────────────────
+                    TextFormField(
+                      controller: nameController,
+                      decoration: _modalInputDecoration(
+                        'Nama',
+                        Icons.person_outline,
+                      ),
+                      validator: (v) => (v == null || v.trim().isEmpty)
+                          ? 'Nama tidak boleh kosong'
+                          : null,
+                    ),
+                    const SizedBox(height: 14),
+
+                    // ── Email ─────────────────────────────────────────
+                    TextFormField(
+                      controller: emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: _modalInputDecoration(
+                        'Email',
+                        Icons.email_outlined,
+                      ),
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Email tidak boleh kosong';
+                        }
+                        if (!v.contains('@')) return 'Format email tidak valid';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 14),
+
+                    // ── Gender Dropdown ───────────────────────────────
+                    DropdownButtonFormField<String>(
+                      value: selectedGender,
+                      decoration: _modalInputDecoration(
+                        'Jenis Kelamin',
+                        Icons.wc_outlined,
+                      ),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'male',
+                          child: Text('Laki-laki'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'female',
+                          child: Text('Perempuan'),
+                        ),
+                      ],
+                      onChanged: (v) =>
+                          setModalState(() => selectedGender = v!),
+                      validator: (v) => (v == null || v.isEmpty)
+                          ? 'Pilih jenis kelamin'
+                          : null,
+                    ),
+                    const SizedBox(height: 14),
+
+                    // ── Birthdate Picker ──────────────────────────────
+                    GestureDetector(
+                      onTap: pickDate,
+                      child: AbsorbPointer(
+                        child: TextFormField(
+                          decoration:
+                              _modalInputDecoration(
+                                'Tanggal Lahir',
+                                Icons.cake_outlined,
+                              ).copyWith(
+                                hintText:
+                                    '${selectedBirthdate.day}/${selectedBirthdate.month}/${selectedBirthdate.year}',
+                                suffixIcon: const Icon(
+                                  Icons.calendar_today_outlined,
+                                  size: 18,
+                                ),
+                              ),
+                          controller: TextEditingController(
+                            text:
+                                '${selectedBirthdate.day}/${selectedBirthdate.month}/${selectedBirthdate.year}',
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // ── Address (optional) ────────────────────────────
+                    TextFormField(
+                      controller: addressController,
+                      decoration: _modalInputDecoration(
+                        'Alamat (opsional)',
+                        Icons.location_on_outlined,
+                      ),
+                      maxLines: 2,
+                    ),
+                    const SizedBox(height: 14),
+
+                    // ── Job (optional) ────────────────────────────────
+                    TextFormField(
+                      controller: jobController,
+                      decoration: _modalInputDecoration(
+                        'Pekerjaan (opsional)',
+                        Icons.work_outline,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // ── Save Button ───────────────────────────────────
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: isSaving
+                            ? null
+                            : () async {
+                                if (!formKey.currentState!.validate()) return;
+
+                                setModalState(() => isSaving = true);
+                                final messenger = ScaffoldMessenger.of(context);
+
+                                final updatedProfile = UserProfile(
+                                  id: user.id,
+                                  name: nameController.text.trim(),
+                                  email: emailController.text.trim(),
+                                  gender: selectedGender,
+                                  birthdate: selectedBirthdate,
+                                  address: addressController.text.trim().isEmpty
+                                      ? null
+                                      : addressController.text.trim(),
+                                  job: jobController.text.trim().isEmpty
+                                      ? null
+                                      : jobController.text.trim(),
+                                );
+
+                                try {
+                                  final success = await _userRepository
+                                      .updateProfile(updatedProfile);
+                                  if (!mounted) return;
+                                  Navigator.pop(context);
+                                  messenger.showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        success
+                                            ? 'Profil berhasil diperbarui'
+                                            : 'Gagal memperbarui profil',
+                                      ),
+                                    ),
+                                  );
+                                  if (success) {
+                                    setState(() {
+                                      _userFuture = _userRepository
+                                          .fetchUserProfile();
+                                    });
+                                  }
+                                } catch (e) {
+                                  if (!mounted) return;
+                                  setModalState(() => isSaving = false);
+                                  messenger.showSnackBar(
+                                    SnackBar(content: Text('Error: $e')),
+                                  );
+                                }
+                              },
+                        child: isSaving
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : const Text(
+                                'Simpan Perubahan',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  InputDecoration _modalInputDecoration(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon),
+      filled: true,
+      fillColor: Colors.grey[50],
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+      ),
     );
   }
 

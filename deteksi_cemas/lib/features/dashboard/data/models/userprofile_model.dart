@@ -35,7 +35,10 @@ class UserProfile {
       'name': name,
       'email': email,
       'gender': gender,
-      'birthdate': birthdate.toIso8601String(),
+      'birthdate':
+          '${birthdate.year.toString().padLeft(4, '0')}-'
+          '${birthdate.month.toString().padLeft(2, '0')}-'
+          '${birthdate.day.toString().padLeft(2, '0')}', // ← YYYY-MM-DD only
       'address': address,
       'job': job,
     };

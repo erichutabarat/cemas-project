@@ -1,4 +1,5 @@
 import 'package:deteksi_cemas/features/survey/data/models/assessment_results_models.dart';
+import 'package:deteksi_cemas/features/survey/presentation/widgets/article_recommendation.dart';
 import 'package:deteksi_cemas/features/survey/presentation/widgets/get_icon_level.dart';
 import 'package:deteksi_cemas/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -28,25 +29,39 @@ class _HarsResultScreenState extends State<HarsResultScreen> {
       case 'moderate anxiety':
         return Colors.orange.shade700;
       case 'severe anxiety':
+        return Colors.red.shade600;
+      case 'very severe anxiety':
         return Colors.red.shade700;
-      default:
+      case 'very serious anxiety':
         return Colors.red.shade800;
+      default:
+        return Colors.red.shade900;
     }
   }
 
   // Helper function for a descriptive message (can be expanded)
   String _getDescriptiveMessage(String level) {
-    switch (level.toLowerCase()) {
+    switch (level.toLowerCase().trim()) {
       case 'normal':
-        return 'It looks like you\'re experiencing very low levels of anxiety. Keep up your self-care routines!';
+        return "Tingkat kecemasan Anda berada dalam batas normal. Gejala yang dirasakan minimal dan tidak mengganggu fungsi adaptasi sehari-hari. Tetap pertahankan pola hidup sehat dan manajemen stres yang baik.";
+
       case 'mild anxiety':
-        return 'You\'re showing mild signs of anxiety. Small adjustments to daily habits can often help. Consider exploring relaxation techniques.';
+        return "Anda mengindikasikan gejala kecemasan ringan (mild anxiety). Secara klinis, ini adalah respons emosional minor yang umumnya belum mengganggu produktivitas secara signifikan. Anda disarankan melakukan teknik relaksasi mandiri, latihan pernapasan, atau evaluasi kebiasaan harian.";
+
       case 'moderate anxiety':
-        return 'Your results suggest moderate anxiety. It might be helpful to talk to a professional or explore stress management strategies.';
+        return "Hasil evaluasi menunjukkan kecemasan sedang (moderate anxiety). Pada tahap ini, manifestasi klinis kecemasan mungkin sudah mulai mengganggu konsentrasi, pola tidur, atau aktivitas harian Anda. Pertimbangkan untuk berkonsultasi dengan profesional kesehatan mental (psikolog/psikiater) untuk strategi koping yang lebih efektif.";
+
       case 'severe anxiety':
-        return 'Your score indicates severe anxiety. We strongly recommend seeking professional support from a doctor or mental health specialist.';
+        return "Skor Anda mengindikasikan kecemasan berat (severe anxiety). Kondisi klinis ini memerlukan intervensi medis karena berpotensi mengganggu fungsi psikososial dan fisik secara signifikan. Kami menyarankan Anda untuk menjadwalkan konsultasi dengan psikolog klinis atau psikiater guna mendapatkan penanganan yang tepat.";
+
+      case 'very severe anxiety':
+        return "Skor Anda menunjukkan kecemasan sangat berat (very severe anxiety). Secara klinis, tingkat ini menandakan distres emosional ekstrem yang umumnya melumpuhkan (debilitating) fungsi harian, serta dapat memicu manifestasi fisik yang intens (seperti serangan panik mendalam). Kondisi ini memerlukan intervensi klinis dan penanganan medis darurat. Harap segera hubungi psikiater, psikolog klinis, atau layanan gawat darurat kesehatan mental terdekat.";
+
+      case 'very serious anxiety':
+        return "Hasil evaluasi menunjukkan kecemasan sangat serius (very serious anxiety). Kondisi ini menandakan tingkat distress emosional yang ekstrem, dengan potensi risiko tinggi terhadap keselamatan diri sendiri atau orang lain. Manifestasi klinis pada tahap ini sering kali melibatkan gejala psikotik, disosiasi, atau ideasi bunuh diri. Intervensi medis darurat sangat diperlukan. Harap segera hubungi layanan gawat darurat kesehatan mental, psikiater, atau psikolog klinis untuk penanganan intensif dan mendesak.";
+
       default:
-        return 'Thank you for completing the survey. We recommend reviewing your results.';
+        return "Terima kasih telah menyelesaikan pengisian kuesioner. Hasil evaluasi tingkat kecemasan Anda memerlukan tinjauan lebih lanjut oleh tenaga medis atau profesional kesehatan mental resmi.";
     }
   }
 
@@ -69,9 +84,7 @@ class _HarsResultScreenState extends State<HarsResultScreen> {
           icon: const Icon(
             Icons.close,
           ), // Or Icons.arrow_back, depending on desired navigation
-          onPressed: () => Navigator.of(context).popUntil(
-            (route) => route.isFirst,
-          ), // Pops all routes until the first one
+          onPressed: () => Navigator.of(context).pop(), // Pops
         ),
       ),
       body: SafeArea(
@@ -163,6 +176,8 @@ class _HarsResultScreenState extends State<HarsResultScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 30),
+              ArticleRecommendation(level: widget.result!.anxietyLevel),
               const SizedBox(height: 30),
 
               // Action Buttons (Next Steps

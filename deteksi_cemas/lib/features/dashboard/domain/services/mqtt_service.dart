@@ -1,12 +1,7 @@
 // ignore_for_file: avoid_print
-
 import 'dart:async';
 import 'package:mqtt_client/mqtt_client.dart';
-import 'package:mqtt_client/mqtt_server_client.dart';
-// Note: We use this conditional import to prevent Android from crashing
-import 'package:mqtt_client/mqtt_browser_client.dart'
-    if (dart.library.io) 'package:mqtt_client/mqtt_server_client.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'mqtt_client_factory.dart'; // ← your 4 new files
 
 class MqttService {
   static final MqttService _instance = MqttService._internal();
@@ -15,14 +10,17 @@ class MqttService {
   static const String _broker = '103.63.25.67';
   static const String _clientId = 'flutter_checker';
 
-  // Using dynamic here avoids the "Type Mismatch" errors between Server/Browser
-  dynamic _client;
+  MqttClient? _client; // ← now typed properly, no more dynamic
 
   MqttService._internal();
 
+  // ─── Private Helpers ──────────────────────────────────────────────────────
+
+  bool get _isConnected =>
+      _client?.connectionStatus?.state == MqttConnectionState.connected;
+
   void _publish(String topic, String message) {
-    if (_client == null ||
-        _client!.connectionStatus?.state != MqttConnectionState.connected) {
+    if (!_isConnected) {
       print("Cannot publish: MQTT not connected");
       return;
     }
@@ -31,48 +29,38 @@ class MqttService {
     _client!.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!);
   }
 
+  // ─── Public Control Methods ───────────────────────────────────────────────
+
   void sendConnectHandshake(String deviceId) =>
       _publish('esp32/device_$deviceId/control', 'CONNECT');
+
   void startRecording(String deviceId) =>
       _publish('esp32/device_$deviceId/control', 'START');
+
   void stopRecording(String deviceId) =>
       _publish('esp32/device_$deviceId/control', 'STOP');
+
   void sendAuthToken(String deviceId, String token) =>
       _publish('esp32/device_$deviceId/auth', token);
 
-  Future<void> connect() async {
-    if (_client != null &&
-        _client!.connectionStatus?.state == MqttConnectionState.connected) {
-      return;
-    }
+  // ─── Connection ───────────────────────────────────────────────────────────
 
-    if (kIsWeb) {
-      // WEB CONFIG: Uses the browser client
-      final browserClient = MqttBrowserClient(
-        'wss://deteksicemas.my.id/mqtt/',
-        _clientId,
-      );
-      browserClient.port = 443;
-      _client = browserClient;
-    } else {
-      // MOBILE CONFIG: Uses the server client
-      final serverClient = MqttServerClient(_broker, _clientId);
-      serverClient.port = 8083;
-      serverClient.useWebSocket = false;
-      _client = serverClient;
-    }
+  Future<void> connect() async {
+    if (_isConnected) return;
+
+    // Factory handles Web vs Mobile — no kIsWeb needed here anymore
+    _client = createMqttClient(_broker, _clientId);
 
     _client!.keepAlivePeriod = 20;
     _client!.onDisconnected = () => print('Disconnected');
     _client!.onConnected = () => print('Connected to Broker');
-
     _client!.connectionMessage = MqttConnectMessage()
         .withClientIdentifier(_clientId)
         .startClean()
         .withWillQos(MqttQos.atLeastOnce);
 
     try {
-      print('Connecting (Web: $kIsWeb)...');
+      print('Connecting...');
       await _client!.connect();
     } catch (e) {
       print('MQTT Exception: $e');
@@ -80,20 +68,22 @@ class MqttService {
     }
   }
 
+  // ─── Device Check ─────────────────────────────────────────────────────────
+
   Future<bool> checkDeviceExist(
     String deviceId, {
     Duration timeout = const Duration(seconds: 3),
   }) async {
-    if (_client == null ||
-        _client!.connectionStatus?.state != MqttConnectionState.connected) {
-      return false;
-    }
+    if (!_isConnected) return false;
 
     final topic = 'esp32/device_$deviceId/status';
     final completer = Completer<bool>();
+
     _client!.subscribe(topic, MqttQos.atLeastOnce);
 
-    _client!.updates!.listen((List<MqttReceivedMessage<MqttMessage>> events) {
+    final sub = _client!.updates!.listen((
+      List<MqttReceivedMessage<MqttMessage>> events,
+    ) {
       for (final event in events) {
         final msg = event.payload as MqttPublishMessage;
         final payload = MqttPublishPayload.bytesToStringAsString(
@@ -108,8 +98,14 @@ class MqttService {
     Future.delayed(timeout, () {
       if (!completer.isCompleted) completer.complete(false);
     });
-    return completer.future;
+
+    final result = await completer.future;
+    await sub.cancel(); // ← cancel listener after done to avoid leaks
+    _client!.unsubscribe(topic); // ← clean up the subscription too
+    return result;
   }
+
+  // ─── Disconnect ───────────────────────────────────────────────────────────
 
   void disconnect() {
     _client?.disconnect();

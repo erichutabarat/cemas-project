@@ -254,10 +254,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: _quickItem(
                     icon: Icons.today,
-                    label: "Today Activity Planner",
+                    label: "Profile",
                     color: ColorList.emeraldBLue,
                     onTap: () {
-                      // TODO: Implement navigation to Activity Planner Screen
+                      if (widget.goToPage != null) {
+                        widget.goToPage!(4); // Navigate to ProfileScreen
+                      }
                     },
                   ),
                 ),

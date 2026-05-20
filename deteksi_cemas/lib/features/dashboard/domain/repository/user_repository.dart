@@ -75,4 +75,32 @@ class UserRepository {
       throw Exception('Failed to delete survey result: ${response.statusCode}');
     }
   }
+
+  Future<bool> updateProfile(UserProfile profile) async {
+    final String apiurl = await BackendRepository.getBackendUrl();
+    final url = Uri.parse('$apiurl/api/user/update');
+    final token = await tokenService.readToken();
+    if (token == null) {
+      throw Exception('Authorization token not found.');
+    }
+
+    print("request body: ${profile.toJson()}");
+
+    final headers = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+
+    final body = jsonEncode(profile.toJson());
+
+    final response = await http.put(url, headers: headers, body: body);
+
+    print("response body: ${response.body}");
+
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      throw Exception('Failed to update profile: ${response.statusCode}');
+    }
+  }
 }

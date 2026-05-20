@@ -1,5 +1,6 @@
 import 'package:deteksi_cemas/features/dashboard_admin/data/models/article_model.dart';
 import 'package:deteksi_cemas/features/dashboard_admin/domain/repository/article_repository.dart';
+import 'package:deteksi_cemas/features/dashboard_admin/presentation/screens/add_article_screen.dart';
 import 'package:deteksi_cemas/features/onboarding/domain/repository/backend_repository.dart';
 import 'package:flutter/material.dart';
 
@@ -63,7 +64,13 @@ class _ArticleAdminScreenState extends State<ArticleAdminScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF1E3A8A),
-        onPressed: () => _showArticleForm(context),
+        onPressed: () async {
+          final created = await Navigator.push<bool>(
+            context,
+            MaterialPageRoute(builder: (_) => const AddArticleScreen()),
+          );
+          if (created == true) _fetchArticles();
+        },
         child: const Icon(Icons.add, color: Colors.white),
       ),
       body: _loading
@@ -109,14 +116,40 @@ class _ArticleAdminScreenState extends State<ArticleAdminScreen> {
               height: 150,
               width: double.infinity,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                height: 150,
-                color: Colors.grey[200],
-                child: const Icon(
-                  Icons.image_not_supported,
-                  color: Colors.grey,
-                ),
-              ),
+
+              // 1. PANTAU GAMBAR YANG BERHASIL
+              loadingBuilder:
+                  (
+                    BuildContext context,
+                    Widget child,
+                    ImageChunkEvent? loadingProgress,
+                  ) {
+                    if (loadingProgress == null) {
+                      // Jika loadingProgress bernilai null, berarti gambar SUDAH SELESAI diunduh dengan sukses
+                      debugPrint('✅ GAMBAR BERHASIL: $_backendUrl${item.url}');
+                      return child; // Tampilkan gambarnya
+                    }
+
+                    // Selagi proses download berjalan, tampilkan widget loading (opsional)
+                    return child;
+                  },
+
+              // 2. PANTAU GAMBAR YANG ERROR
+              errorBuilder: (context, error, stackTrace) {
+                // Mencetak URL yang gagal beserta alasan error-nya
+                debugPrint('❌ GAMBAR ERROR: $_backendUrl${item.url}');
+                debugPrint('⚠️ Alasan Gagal: $error');
+
+                // Tampilkan widget fallback jika error
+                return Container(
+                  height: 150,
+                  color: Colors.grey[200],
+                  child: const Icon(
+                    Icons.image_not_supported,
+                    color: Colors.grey,
+                  ),
+                );
+              },
             ),
           ),
 
@@ -224,6 +257,9 @@ class _ArticleAdminScreenState extends State<ArticleAdminScreen> {
   }
 
   void _showArticleForm(BuildContext context, {ArticleModel? article}) {
+    final idController = TextEditingController(
+      text: article?.id.toString() ?? '',
+    );
     final nameController = TextEditingController(text: article?.name ?? '');
     final levelController = TextEditingController(
       text: article?.anxietyLevel ?? '',
@@ -233,6 +269,9 @@ class _ArticleAdminScreenState extends State<ArticleAdminScreen> {
     );
     final urlController = TextEditingController(text: article?.url ?? '');
 
+    // ← State for dropdown inside StatefulBuilder
+    ArticleType selectedType = article?.articleType ?? ArticleType.food;
+
     final isEdit = article != null;
 
     showModalBottomSheet(
@@ -241,87 +280,119 @@ class _ArticleAdminScreenState extends State<ArticleAdminScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          left: 20,
-          right: 20,
-          top: 20,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              isEdit ? "Edit Artikel" : "Tambah Artikel Baru",
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: nameController,
-              decoration: InputDecoration(
-                labelText: "Nama Artikel",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: levelController,
-              decoration: InputDecoration(
-                labelText: "Anxiety Level (Low / Moderate / High)",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: urlController,
-              decoration: InputDecoration(
-                labelText: "URL Gambar",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: descController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                labelText: "Deskripsi",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1E3A8A),
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+      builder: (context) => StatefulBuilder(
+        // ← needed to rebuild dropdown
+        builder: (context, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 20,
+            right: 20,
+            top: 20,
+          ),
+          child: SingleChildScrollView(
+            // ← prevents overflow on small screens
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isEdit ? "Edit Artikel" : "Tambah Artikel Baru",
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                onPressed: () {
-                  // TODO: call create/update API with controller values
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  isEdit ? "Simpan Perubahan" : "Simpan Artikel",
-                  style: const TextStyle(color: Colors.white),
+                const SizedBox(height: 20),
+
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: "Nama Artikel",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 12),
+
+                TextField(
+                  controller: levelController,
+                  decoration: InputDecoration(
+                    labelText: "Anxiety Level (low / moderate / high)",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                TextField(
+                  controller: descController,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    labelText: "Deskripsi",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1E3A8A),
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: () {
+                      final newArticle = ArticleModel(
+                        id: int.tryParse(idController.text) ?? 0,
+                        name: nameController.text,
+                        articleType:
+                            selectedType, // ← from dropdown, not controller
+                        url: urlController.text,
+                        description: descController.text,
+                        anxietyLevel: levelController.text,
+                      );
+                      _updateArticle(newArticle);
+                      Navigator.pop(context);
+                    },
+                    child: Text(
+                      isEdit ? "Simpan Perubahan" : "Simpan Artikel",
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
-            const SizedBox(height: 20),
-          ],
+          ),
         ),
       ),
     );
+  }
+
+  Future<void> _updateArticle(ArticleModel article) async {
+    // ← capture BEFORE the await, while context is still valid
+    final messenger = ScaffoldMessenger.of(context);
+
+    final success = await ArticleRepository().updateArticle(article);
+
+    if (!mounted) return;
+
+    messenger.showSnackBar(
+      // ← use captured reference, not ScaffoldMessenger.of(context)
+      SnackBar(
+        content: Text(
+          success ? 'Artikel berhasil diperbarui' : 'Gagal memperbarui artikel',
+        ),
+      ),
+    );
+
+    if (success) _fetchArticles();
   }
 }
