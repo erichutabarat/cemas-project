@@ -13,3 +13,10 @@ dist/
 deploy.md
 
 cemas-backend_latest.tar
+# archive files
+*.tar
+*.tar.gz
+*.zip
+
+# docker images
+*.img
