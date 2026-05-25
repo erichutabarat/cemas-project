@@ -5,7 +5,9 @@ import (
 	"strconv"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	
+	"strings"
+    "path/filepath"
+    "os"
 	"deteksi_cemas_backend/models" // Using the user-provided module path
 )
 
@@ -292,6 +294,101 @@ func (ac *AdminController) GetAllHarsQuestionsAndOptions(c *gin.Context) {
         "status": "success",
         "hars_questions": questions,
     })
+}
+
+func (ac *AdminController) GetAllInspections(c *gin.Context) {
+    var inspections []models.Inspection
+    if err := ac.DB.Preload("Result").Find(&inspections).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch inspections"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "status": "success",
+        "inspections": inspections,
+    })
+}
+
+func (ac *AdminController) GetInspectionByID(c *gin.Context) {
+    inspectionIDStr := c.Param("id")
+    inspectionID, err := strconv.Atoi(inspectionIDStr)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid inspection ID"})
+        return
+    }
+    
+    var inspection models.Inspection
+    if err := ac.DB.Preload("Result").First(&inspection, inspectionID).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch inspection"})
+        return
+    }
+    
+    c.JSON(http.StatusOK, gin.H{
+        "status": "success",
+        "data": inspection,
+    })
+}
+
+func (ac *AdminController) UpdateInspection(c *gin.Context) {
+	inspectionIDStr := c.Param("id")
+	inspectionID, err := strconv.Atoi(inspectionIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid inspection ID"})
+		return
+	}
+
+	var req models.UpdateFileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+    if strings.ToLower(filepath.Ext(req.FileName)) != ".wav" {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid file extension. Only .wav files are allowed"})
+        return
+    }
+
+	// 1. Fetch the existing inspection record from the database
+	var inspection models.Inspection
+	if err := ac.DB.First(&inspection, inspectionID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Inspection record not found"})
+		return
+	}
+
+	// 2. Extract the local file path from the stored URL
+	// Transforms "http://localhost:8080/uploads/heartbeat_sample.wav" -> "uploads/heartbeat_sample.wav"
+	oldFilePath := strings.Replace(inspection.AudioUrl, "http://localhost:8080/", "", 1)
+
+	// 3. Clean the new filename to prevent path traversal attacks (e.g., passing "../../filename.wav")
+	safeNewFileName := filepath.Base(req.FileName)
+	newFilePath := "uploads/" + safeNewFileName
+
+	// 4. Check if the old file actually exists before trying to rename it
+	if _, err := os.Stat(oldFilePath); os.IsNotExist(err) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Physical audio file not found on server storage"})
+		return
+	}
+
+	// 5. Rename the file in the OS filesystem
+	if err := os.Rename(oldFilePath, newFilePath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to rename physical file"})
+		return
+	}
+
+	// 6. Update the new AudioUrl in the database
+	newAudioUrl := "http://localhost:8080/" + newFilePath
+	if err := ac.DB.Model(&inspection).Update("AudioUrl", newAudioUrl).Error; err != nil {
+		// Rollback: if DB update fails, rename the physical file back to the old name
+		os.Rename(newFilePath, oldFilePath)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update database record"})
+		return
+	}
+
+	// 7. Return the successful response
+	c.JSON(http.StatusOK, gin.H{
+		"message":      "Inspection audio file updated successfully",
+		"inspection_id": inspection.ID,
+		"audio_url":     newAudioUrl,
+	})
 }
 
 // TODO: Implement Create, Update, Delete for HARS questions and options

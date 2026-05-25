@@ -33,3 +33,7 @@ type Result struct {
     InspectionID int     `gorm:"unique;not null" json:"inspection_id"` 
     CreatedAt   time.Time `json:"created_at"`
 }
+
+type UpdateFileRequest struct {
+    FileName string `json:"file_name" binding:"required"`
+}
