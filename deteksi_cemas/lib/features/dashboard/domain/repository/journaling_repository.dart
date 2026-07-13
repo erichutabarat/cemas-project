@@ -7,7 +7,7 @@ import 'dart:convert';
 class JournalingRepository {
   // Add your repository methods and properties here
   final tokenService = TokenStorageService();
-  final String journalEndpoint = '/api/user/journal';
+  final String journalEndpoint = '/api/journal';
 
   // Get user history
 

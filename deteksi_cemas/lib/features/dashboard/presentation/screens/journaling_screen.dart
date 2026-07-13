@@ -2,10 +2,6 @@
 
 import 'package:deteksi_cemas/features/dashboard/data/models/journal_model.dart';
 import 'package:deteksi_cemas/features/dashboard/domain/repository/journaling_repository.dart';
-import 'package:deteksi_cemas/features/dashboard/presentation/widgets/responsive_layout.dart';
-import 'package:deteksi_cemas/features/survey/data/models/assessment_results_models.dart';
-import 'package:deteksi_cemas/features/survey/presentation/screens/hars_result_screen.dart';
-import 'package:deteksi_cemas/features/survey/presentation/widgets/get_icon_level.dart';
 import 'package:deteksi_cemas/theme/color_list.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -20,7 +16,7 @@ class JournalScreen extends StatefulWidget {
 
 class _JournalScreenState extends State<JournalScreen> {
   final JournalingRepository journalingRepository = JournalingRepository();
-  late Future<List<dynamic>> journalFuture;
+  late Future<List<JournalEntry>> journalFuture;
 
   // --- Journal entry state ---
   final TextEditingController _journalController = TextEditingController();
@@ -28,8 +24,8 @@ class _JournalScreenState extends State<JournalScreen> {
   // Holds which mood is currently selected. Null = none selected yet.
   String? _selectedMoodLabel;
 
-  // Single source of truth for the moods so the selectable row and the
-  // confirmation dialog stay in sync.
+  // Single source of truth for the moods so the selectable row, the
+  // confirmation dialog, and the history list all stay in sync.
   final List<Map<String, String>> _moods = const [
     {'emoji': '😊', 'label': 'Happy'},
     {'emoji': '😌', 'label': 'Calm'},
@@ -181,7 +177,7 @@ class _JournalScreenState extends State<JournalScreen> {
                   ),
                 ),
 
-                FutureBuilder<List<dynamic>>(
+                FutureBuilder<List<JournalEntry>>(
                   future: journalFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
@@ -195,14 +191,14 @@ class _JournalScreenState extends State<JournalScreen> {
                       return Center(child: Text('Error: ${snapshot.error}'));
                     }
 
-                    final List<dynamic> historyData = snapshot.data ?? [];
+                    final List<JournalEntry> historyData = snapshot.data ?? [];
 
                     if (historyData.isEmpty) {
                       return const Center(
                         child: Padding(
                           padding: EdgeInsets.only(top: 20.0),
                           child: Text(
-                            'No history records found.\nPull down to refresh.',
+                            'No journal entries yet.\nPull down to refresh.',
                           ),
                         ),
                       );
@@ -215,27 +211,15 @@ class _JournalScreenState extends State<JournalScreen> {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemBuilder: (context, index) {
-                          final item = historyData[index];
-                          final int id = item['ID'];
-                          final int score = item['score'];
-                          final String level = item['level'];
-                          final Color levelColor = _getLevelColor(level);
-                          final DateTime? createdAt = item['CreatedAt'] != null
-                              ? DateTime.tryParse(item['CreatedAt'])
-                              : null;
+                          final JournalEntry entry = historyData[index];
+                          final String emoji = _getMoodEmoji(entry.mood);
+                          final Color moodColor = _getMoodColor(entry.mood);
 
-                          final String dateString = createdAt != null
+                          final String dateString = entry.createdAt != null
                               ? DateFormat(
                                   'MMM dd, yyyy',
-                                ).format(createdAt.toLocal())
+                                ).format(entry.createdAt!.toLocal())
                               : 'N/A';
-
-                          final AssessmentResult result = AssessmentResult(
-                            id: id,
-                            totalScore: score,
-                            anxietyLevel: level,
-                            createdAt: createdAt,
-                          );
 
                           return Card(
                             elevation: 2,
@@ -243,54 +227,41 @@ class _JournalScreenState extends State<JournalScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                               side: BorderSide(
-                                color: levelColor.withAlpha(128),
+                                color: moodColor.withAlpha(128),
                                 width: 1.5,
                               ),
                             ),
                             child: ListTile(
                               leading: CircleAvatar(
-                                backgroundColor: levelColor.withAlpha(50),
-                                child: Icon(
-                                  getIconLevel(level),
-                                  color: levelColor,
+                                backgroundColor: moodColor.withAlpha(50),
+                                child: Text(
+                                  emoji,
+                                  style: const TextStyle(fontSize: 20),
                                 ),
                               ),
                               title: Text(
-                                level,
+                                entry.mood,
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: levelColor,
+                                  color: moodColor,
                                 ),
                               ),
-                              subtitle: Text('Score: $score\nID: $id'),
-                              trailing: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    dateString,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const Text(
-                                    'View Details',
-                                    style: TextStyle(
-                                      color: Colors.blue,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
+                              subtitle: Text(
+                                entry.content,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => responsiveLayout(
-                                    content: HarsResultScreen(result: result),
-                                  ),
+                              trailing: Text(
+                                dateString,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              onLongPress: () => _showDeleteDialog(index, id),
+                              onTap: () =>
+                                  _showEntryDetail(entry, emoji, dateString),
+                              onLongPress: entry.id != null
+                                  ? () => _showDeleteDialog(index, entry.id!)
+                                  : null,
                             ),
                           );
                         },
@@ -307,22 +278,64 @@ class _JournalScreenState extends State<JournalScreen> {
     );
   }
 
-  Color _getLevelColor(String? level) {
-    if (level == null) return Colors.grey;
-    switch (level.toLowerCase()) {
-      case 'normal':
-        return Colors.green.shade500;
-      case 'mild anxiety':
-        return Colors.yellow.shade700;
-      case 'moderate anxiety':
-        return Colors.orange.shade700;
-      case 'severe anxiety':
-        return Colors.red.shade600;
-      case 'very serious anxiety':
-        return Colors.red.shade800;
+  // --- Mood -> emoji / color lookups, sourced from the same list used
+  // for the selectable row so everything stays consistent. ---
+  String _getMoodEmoji(String mood) {
+    final match = _moods.firstWhere(
+      (m) => m['label']!.toLowerCase() == mood.toLowerCase(),
+      orElse: () => const {'emoji': '📝'},
+    );
+    return match['emoji']!;
+  }
+
+  Color _getMoodColor(String mood) {
+    switch (mood.toLowerCase()) {
+      case 'happy':
+        return Colors.green.shade600;
+      case 'calm':
+        return Colors.teal.shade600;
+      case 'neutral':
+        return Colors.blueGrey;
+      case 'sad':
+        return Colors.indigo.shade400;
       default:
         return Colors.blueGrey;
     }
+  }
+
+  // --- Tap a history card to read the full entry ---
+  void _showEntryDetail(JournalEntry entry, String emoji, String dateString) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 24)),
+              const SizedBox(width: 8),
+              Text(entry.mood),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(dateString, style: const TextStyle(color: Colors.grey)),
+                const SizedBox(height: 12),
+                Text(entry.content),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   // --- Tappable mood item; highlights when selected ---
@@ -432,6 +445,8 @@ class _JournalScreenState extends State<JournalScreen> {
       setState(() {
         _journalController.clear();
         _selectedMoodLabel = null;
+        // Refresh the history list so the new entry shows up immediately.
+        journalFuture = journalingRepository.fetchJournalHistory();
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -445,7 +460,7 @@ class _JournalScreenState extends State<JournalScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete History'),
+          title: const Text('Delete Journal Entry'),
           content: Text('Are you sure you want to delete record ID $id?'),
           actions: [
             TextButton(
