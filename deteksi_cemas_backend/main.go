@@ -28,6 +28,7 @@ func main() {
         &models.RecommendationFood{},
         &models.FeedbackQuestion{},
         &models.FeedbackResponse{},
+        &models.JournalEntry{},
     )
 
     migrations.SeedHarsQuestions(db)
@@ -82,6 +83,7 @@ func main() {
     routes.SetupRecommendationRoutes(r, db)
     routes.SetupAdminRoutes(r, db)
     routes.SetupFeedbackRoutes(r, db)
+    routes.SetupJournalRoutes(r, db)
 
     // 4. Run server
     log.Println("Server listening on :8080")
