@@ -270,6 +270,34 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: _quickItem(
+                    icon: Icons.book_rounded,
+                    label: "Journaling",
+                    color: ColorList.emeraldBLue,
+                    onTap: () {
+                      Navigator.of(context).pushNamed('/journal');
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _quickItem(
+                    icon: Icons.settings_rounded,
+                    label: "Settings",
+                    color: ColorList.emeraldBLue,
+                    onTap: () {
+                      if (widget.goToPage != null) {
+                        widget.goToPage!(4); // Navigate to ProfileScreen
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),

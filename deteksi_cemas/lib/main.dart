@@ -7,6 +7,7 @@ import 'package:deteksi_cemas/features/auth/presentation/screens/register_screen
 import 'package:deteksi_cemas/features/auth/presentation/states/auth_bloc.dart';
 import 'package:deteksi_cemas/features/auth/presentation/states/googleauth_bloc.dart';
 import 'package:deteksi_cemas/features/dashboard/dashboard_layout.dart';
+import 'package:deteksi_cemas/features/dashboard/presentation/screens/journaling_screen.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/screens/survey_screen.dart';
 import 'package:deteksi_cemas/features/dashboard/presentation/widgets/responsive_layout.dart';
 import 'package:deteksi_cemas/features/dashboard_admin/dashboard_admin_layout.dart';
@@ -83,6 +84,7 @@ class MainApp extends StatelessWidget {
             "/about_app": (context) => const AboutAppPage(),
             // Admin dashboard route
             "/dashboard_admin": (context) => const DashboardAdminLayout(),
+            "/journal": (context) => responsiveLayout(content: JournalScreen()),
           },
         );
       },
