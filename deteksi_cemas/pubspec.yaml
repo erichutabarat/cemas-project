@@ -46,6 +46,7 @@ flutter:
     - "assets/images/onboarding_explore.png"
     - "assets/images/jogging.jpg"
     - "assets/images/food.jpg"
+    - "assets/images/heartbeat_image.png"
     - "assets/animation/heartbeat_animation.json"
     - "assets/audio/heartbeat_sample.wav"
     - .env

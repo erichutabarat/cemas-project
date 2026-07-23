@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 
 class HeartbeatAnimation extends StatefulWidget {
   const HeartbeatAnimation({super.key});
@@ -10,32 +9,36 @@ class HeartbeatAnimation extends StatefulWidget {
 
 class HeartbeatAnimationState extends State<HeartbeatAnimation>
     with SingleTickerProviderStateMixin {
-  // 1. Add Ticker Mixin
-
-  // 2. Declare the AnimationController
+  // 1. Declare the AnimationController and a scale animation
   late AnimationController _controller;
-  bool playAnimationStatus =
-      false; // Use true initially if you want it to start playing
+  late Animation<double> _scaleAnimation;
+
+  bool playAnimationStatus = false;
 
   @override
   void initState() {
     super.initState();
 
-    // 3. Initialize the controller
+    // 2. Initialize the controller
     _controller = AnimationController(
-      vsync: this, // Assign the Ticker
+      vsync: this,
       duration: const Duration(
-        seconds: 2,
-      ), // Set a default duration (or get it from Lottie)
+        milliseconds: 800,
+      ), // Adjust speed of heartbeat here
     );
 
-    // Start playing immediately and repeat
+    // 3. Define the scale range (e.g., from normal size 1.0 to 1.25 times bigger)
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.25,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    // Stop initially
     _controller.stop();
   }
 
   @override
   void dispose() {
-    // Dispose the controller to prevent memory leaks
     _controller.dispose();
     super.dispose();
   }
@@ -45,11 +48,11 @@ class HeartbeatAnimationState extends State<HeartbeatAnimation>
       playAnimationStatus = !playAnimationStatus;
 
       if (playAnimationStatus) {
-        // If status is now true, play/repeat the animation
-        _controller.repeat();
+        // Play and reverse back to create a smooth pulsing heartbeat effect
+        _controller.repeat(reverse: true);
       } else {
-        // If status is now false, pause the animation
         _controller.stop();
+        _controller.reset(); // Optional: reset to original size when stopped
       }
     });
   }
@@ -59,22 +62,23 @@ class HeartbeatAnimationState extends State<HeartbeatAnimation>
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // 4. Use Lottie.asset and pass the controller
-        Lottie.asset(
-          'assets/animation/heartbeat_animation.json',
-          controller: _controller, // Pass the controller here
-          height: 250,
-          width: 250,
-          // Optional: automatically set the controller duration once loaded
-          onLoaded: (composition) {
-            if (_controller.duration == null) {
-              _controller.duration = composition.duration;
-              _controller.repeat(); // Re-start repeat after duration is set
-            }
-          },
+        // 4. Use ScaleTransition with Image.asset instead of Lottie
+        ScaleTransition(
+          scale: _scaleAnimation,
+          child: Image.asset(
+            'assets/images/heartbeat_image.png',
+            height: 150,
+            width: 150,
+          ),
         ),
 
         const SizedBox(height: 20),
+
+        // Optional toggle button to test the animation state
+        ElevatedButton(
+          onPressed: toggleAnimation,
+          child: Text(playAnimationStatus ? 'Stop' : 'Play'),
+        ),
       ],
     );
   }

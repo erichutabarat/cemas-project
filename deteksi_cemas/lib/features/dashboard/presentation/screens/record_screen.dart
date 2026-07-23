@@ -156,7 +156,7 @@ class _RecordScreenState extends State<RecordScreen> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
-                        color: Colors.red,
+                        color: Color(0xFFB07A7E),
                       ),
                     ),
                     // CRITICAL CHANGE: Pass the handler to the bottom sheet function
@@ -222,7 +222,7 @@ class _RecordScreenState extends State<RecordScreen> {
                         : Icons.check_circle_rounded,
                     color: _recordStatus == RecordStatus.sent
                         ? Colors.green
-                        : Colors.red,
+                        : Colors.green.shade900,
                     size: 50,
                   ),
                 ),
