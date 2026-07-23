@@ -8,6 +8,7 @@ import 'package:deteksi_cemas/l10n/app_localizations.dart';
 import 'package:deteksi_cemas/theme/color_list.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class HistoryScreen extends StatefulWidget {
   final ScrollController? controller;
@@ -19,8 +20,11 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   List<MedicalRecordModel> medicalRecords = [];
+  List<MedicalRecordModel> _filteredRecords = [];
   bool isLoading = true;
+  DateTimeRange? _selectedDateRange;
   final historyRepo = HistoryRepository();
+
   @override
   void initState() {
     super.initState();
@@ -29,7 +33,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   void _loadMedicalRecords() async {
     try {
-      // 1. Explicitly type the result from the repo
       final List<MedicalRecordModel> records = await historyRepo
           .fetchUsersInspectionHistory();
       if (kDebugMode) {
@@ -39,17 +42,86 @@ class _HistoryScreenState extends State<HistoryScreen> {
         medicalRecords = records;
         isLoading = false;
       });
+      _applyDateFilter();
     } catch (e) {
-      // Handle error appropriately
       if (kDebugMode) {
         print('Error fetching medical records: $e');
       }
     }
   }
 
+  void _applyDateFilter() {
+    if (_selectedDateRange == null) {
+      setState(() {
+        _filteredRecords = medicalRecords;
+      });
+      return;
+    }
+
+    final start = DateTime(
+      _selectedDateRange!.start.year,
+      _selectedDateRange!.start.month,
+      _selectedDateRange!.start.day,
+    );
+    final end = DateTime(
+      _selectedDateRange!.end.year,
+      _selectedDateRange!.end.month,
+      _selectedDateRange!.end.day,
+      23,
+      59,
+      59,
+    );
+
+    setState(() {
+      _filteredRecords = medicalRecords.where((record) {
+        final recordDate = record.checkedAt;
+        return recordDate.isAfter(start.subtract(const Duration(seconds: 1))) &&
+            recordDate.isBefore(end.add(const Duration(seconds: 1)));
+      }).toList();
+    });
+  }
+
+  Future<void> _pickDateRange() async {
+    final now = DateTime.now();
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(now.year - 5),
+      lastDate: now,
+      initialDateRange:
+          _selectedDateRange ??
+          DateTimeRange(start: now.subtract(const Duration(days: 7)), end: now),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(
+              context,
+            ).colorScheme.copyWith(primary: ColorList.aquaCyan),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _selectedDateRange = picked;
+      });
+      _applyDateFilter();
+    }
+  }
+
+  void _clearDateFilter() {
+    setState(() {
+      _selectedDateRange = null;
+    });
+    _applyDateFilter();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final dateFormat = DateFormat('dd MMM yyyy');
+
     return Scaffold(
       body: Padding(
         padding: EdgeInsets.all(0),
@@ -133,6 +205,44 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
               SizedBox(height: 26),
 
+              // filter by date row — sits right above Medical History
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _selectedDateRange == null
+                          ? const SizedBox.shrink()
+                          : Align(
+                              alignment: Alignment.centerLeft,
+                              child: Chip(
+                                avatar: const Icon(Icons.date_range, size: 18),
+                                label: Text(
+                                  '${dateFormat.format(_selectedDateRange!.start)} - ${dateFormat.format(_selectedDateRange!.end)}',
+                                ),
+                                onDeleted: _clearDateFilter,
+                                deleteIcon: const Icon(Icons.close, size: 18),
+                              ),
+                            ),
+                    ),
+                    TextButton.icon(
+                      onPressed: _pickDateRange,
+                      icon: Icon(
+                        Icons.filter_alt_rounded,
+                        color: ColorList.aquaCyan,
+                      ),
+                      label: Text(
+                        _selectedDateRange == null
+                            ? 'Filter by date'
+                            : 'Change',
+                        style: TextStyle(color: ColorList.aquaCyan),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 8),
+
               // Medical History
               Container(
                 padding: EdgeInsets.all(10),
@@ -153,16 +263,28 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     // list here
                     isLoading
                         ? CircularProgressIndicator()
+                        : _filteredRecords.isEmpty
+                        ? Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            child: Center(
+                              child: Text(
+                                _selectedDateRange != null
+                                    ? 'No records in the selected date range'
+                                    : 'No records found',
+                                style: TextStyle(color: Colors.grey.shade600),
+                              ),
+                            ),
+                          )
                         : ListView.separated(
                             shrinkWrap:
                                 true, // <-- allow height to grow with content
                             physics:
                                 NeverScrollableScrollPhysics(), // <-- disable scrolling here
-                            itemCount: medicalRecords.length,
+                            itemCount: _filteredRecords.length,
                             separatorBuilder: (context, index) =>
                                 SizedBox(height: 12),
                             itemBuilder: (context, index) {
-                              final item = medicalRecords[index];
+                              final item = _filteredRecords[index];
                               return GestureDetector(
                                 onTap: () {
                                   Navigator.push(
