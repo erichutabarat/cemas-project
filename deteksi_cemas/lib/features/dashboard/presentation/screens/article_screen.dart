@@ -102,6 +102,13 @@ class _ArticleScreenState extends State<ArticleScreen> {
                   width: double.infinity,
                   height: 50,
                   child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors
+                          .green
+                          .shade800, // Changes the background color to green
+                      foregroundColor: Colors
+                          .white, // Changes the text and icon color (optional)
+                    ),
                     onPressed: () => startSurvey(context),
                     icon: const Icon(Icons.psychology_alt),
                     label: Text(
