@@ -104,7 +104,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     Row(
                       children: [
                         Text(
-                          "Heart Rate Zone",
+                          "Anxiety Level",
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,

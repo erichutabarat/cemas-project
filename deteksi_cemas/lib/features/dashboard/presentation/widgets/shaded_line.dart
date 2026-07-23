@@ -6,10 +6,10 @@ class ShadedLineWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List rateZone = [
-      {'name': 'Healthy', 'bpm': 60, 'color': Colors.orange},
-      {'name': 'Low', 'bpm': 100, 'color': Colors.red.shade400},
-      {'name': 'Moderate', 'bpm': 130, 'color': Colors.red.shade600},
-      {'name': 'High', 'bpm': 160, 'color': Colors.red.shade800},
+      {'name': 'Mild', 'bpm': 17, 'color': Colors.orange},
+      {'name': 'Moderate', 'bpm': 24, 'color': Colors.red.shade400},
+      {'name': 'Severe', 'bpm': 30, 'color': Colors.red.shade600},
+      {'name': 'Very Severe', 'bpm': 56, 'color': Colors.red.shade800},
     ];
 
     const double lineHeight = 12.0;
