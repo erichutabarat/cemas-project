@@ -60,6 +60,16 @@ services:
     volumes:
       - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
 
+  # 4. Heartbeat API Service
+  heartbeat-api:
+  image: heartbeat-api:latest
+  restart: always
+  environment:
+    AUDIO_ROOT: /uploads
+    INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+  volumes:
+    - ./deteksi_cemas_backend/uploads:/uploads:ro
+
 # Define the persistent volume for MySQL data
 volumes:
   db_data:
