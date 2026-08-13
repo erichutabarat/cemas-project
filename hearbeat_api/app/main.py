@@ -27,11 +27,13 @@ updated to match, or predictions will be silently wrong.
 
 import io
 import logging
+import os
+from pathlib import Path
 
 import joblib
 import librosa
 import numpy as np
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from scipy.fft import dct
@@ -41,6 +43,14 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("heartbeat-api")
 
 MODEL_PATH = "app/model.joblib"
+
+# Root directory where uploaded audio lives. Must match the volume mount
+# path used by BOTH this service and the backend service in docker-compose.
+AUDIO_ROOT = Path(os.environ.get("AUDIO_ROOT", "/shared-audio")).resolve()
+
+# Simple shared-secret auth so only the backend (which knows this value)
+# can call this service. Set the same value in both containers' env vars.
+INTERNAL_API_KEY = os.environ.get("INTERNAL_API_KEY")
 
 # --- extraction config, must match training notebook exactly ---
 LOWCUT = 20.0
@@ -82,6 +92,37 @@ class PredictionResponse(BaseModel):
     predicted_label: str
     class_scores: dict
     n_features_used: int
+
+
+class PredictByPathRequest(BaseModel):
+    inspection_id: str
+    audio_path: str  # path relative to AUDIO_ROOT, e.g. "2026/08/13/abc123.wav"
+
+
+class PredictByPathResponse(BaseModel):
+    inspection_id: str
+    predicted_label: str
+    class_scores: dict
+
+
+def check_internal_auth(x_internal_key: str | None):
+    """Reject calls that don't present the shared internal API key, when one is configured."""
+    if INTERNAL_API_KEY and x_internal_key != INTERNAL_API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid or missing internal API key.")
+
+
+def resolve_audio_path(audio_path: str) -> Path:
+    """
+    Resolve a relative path the backend gave us against AUDIO_ROOT, and make
+    sure the result is still inside AUDIO_ROOT (blocks path traversal like
+    '../../etc/passwd').
+    """
+    candidate = (AUDIO_ROOT / audio_path).resolve()
+    if AUDIO_ROOT not in candidate.parents and candidate != AUDIO_ROOT:
+        raise HTTPException(status_code=400, detail="Invalid audio_path.")
+    if not candidate.is_file():
+        raise HTTPException(status_code=404, detail=f"Audio file not found: {audio_path}")
+    return candidate
 
 
 def extract_features(audio_bytes: bytes) -> np.ndarray:
@@ -186,6 +227,53 @@ async def predict(file: UploadFile = File(...)):
         predicted_label=str(prediction),
         class_scores=scores,
         n_features_used=features.shape[1],
+    )
+
+
+@app.post("/predict-by-path", response_model=PredictByPathResponse)
+async def predict_by_path(
+    body: PredictByPathRequest,
+    x_internal_key: str | None = Header(default=None),
+):
+    """
+    Meant to be called by the backend service, not by the mobile app directly.
+
+    The backend sends an inspection_id and a path to an audio file that both
+    services can see through a shared Docker volume (see AUDIO_ROOT). This
+    avoids re-uploading the file a second time over HTTP.
+    """
+    check_internal_auth(x_internal_key)
+
+    if model is None:
+        raise HTTPException(status_code=503, detail="Model is not loaded yet.")
+
+    file_path = resolve_audio_path(body.audio_path)
+    audio_bytes = file_path.read_bytes()
+    if not audio_bytes:
+        raise HTTPException(status_code=400, detail="Audio file is empty.")
+
+    features = extract_features(audio_bytes)
+
+    try:
+        prediction = model.predict(features)[0]
+        decision = model.decision_function(features)[0]
+        classes = model.named_steps["svm"].classes_
+        scores = {cls: float(score) for cls, score in zip(classes, decision)}
+    except Exception as e:
+        logger.exception("Prediction failed for inspection_id=%s", body.inspection_id)
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {e}")
+
+    logger.info(
+        "Predicted %s for inspection_id=%s (audio_path=%s)",
+        prediction,
+        body.inspection_id,
+        body.audio_path,
+    )
+
+    return PredictByPathResponse(
+        inspection_id=body.inspection_id,
+        predicted_label=str(prediction),
+        class_scores=scores,
     )
 
 
