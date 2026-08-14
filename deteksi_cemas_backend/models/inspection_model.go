@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+    "gorm.io/datatypes"
+    "time"   
+)
 
 // Inspection is the primary model in the one-to-one relationship.
 type Inspection struct {
