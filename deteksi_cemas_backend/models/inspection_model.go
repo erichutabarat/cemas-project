@@ -20,18 +20,18 @@ type Inspection struct {
 // Result is the secondary model in the one-to-one relationship.
 // The foreign key (InspectionID) must be unique to enforce a one-to-one constraint.
 type Result struct {
-    ID       int     `gorm:"primaryKey" json:"id"`
-    AnxietyScore float64 `json:"anxiety_score"`
-    AnxietyLevel string  `json:"anxiety_level"`
-    Hrv       float64 `json:"hrv"`
-    Bpm    float64 `json:"bpm"`
-    Confidence   float64 `json:"confidence"`
-    
-    // Foreign Key: Links this Result back to its Inspection.
-    // The `unique` tag is CRUCIAL for making it a true one-to-one relationship, 
-    // ensuring no two Result records can point to the same Inspection.
-    InspectionID int     `gorm:"unique;not null" json:"inspection_id"` 
-    CreatedAt   time.Time `json:"created_at"`
+    ID           int       `gorm:"primaryKey" json:"id"`
+    AnxietyScore float64   `json:"anxiety_score"`
+    AnxietyLevel string    `json:"anxiety_level"`   // now populated with predicted_label
+    Hrv          float64   `json:"hrv"`              // not provided by heartbeat-api yet, stays 0
+    Bpm          float64   `json:"bpm"`               // not provided by heartbeat-api yet, stays 0
+    Confidence   float64   `json:"confidence"`         // approximate, see note below
+
+    // NEW - nullable, so existing rows just get NULL here, no data loss
+    ClassScores *datatypes.JSON `json:"class_scores,omitempty"`
+
+    InspectionID int       `gorm:"unique;not null" json:"inspection_id"`
+    CreatedAt    time.Time `json:"created_at"`
 }
 
 type UpdateFileRequest struct {
