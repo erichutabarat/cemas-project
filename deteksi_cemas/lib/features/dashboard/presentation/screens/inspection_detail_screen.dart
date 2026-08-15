@@ -1,7 +1,7 @@
 import 'package:deteksi_cemas/features/dashboard/domain/repository/heartbeat_repository.dart';
 import 'package:deteksi_cemas/features/survey/presentation/widgets/article_recommendation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../data/models/medical_record_model.dart';
 
@@ -19,17 +19,19 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
   @override
   void initState() {
     super.initState();
-    print({
-      'id': widget.record.id,
-      'audioUrl': widget.record.audioUrl,
-      'checked': widget.record.checked,
-      'checkedAt': widget.record.checkedAt.toIso8601String(),
-      'bpm': widget.record.bpm,
-      'hrv': widget.record.hrv,
-      'anxietyScore': widget.record.anxietyScore,
-      'result': widget.record.result,
-      'confidence': widget.record.confidence,
-    });
+    if (kDebugMode) {
+      print({
+        'id': widget.record.id,
+        'audioUrl': widget.record.audioUrl,
+        'checked': widget.record.checked,
+        'checkedAt': widget.record.checkedAt.toIso8601String(),
+        'bpm': widget.record.bpm,
+        'hrv': widget.record.hrv,
+        'anxietyScore': widget.record.anxietyScore,
+        'result': widget.record.result,
+        'confidence': widget.record.confidence,
+      });
+    }
     _audioPlayer = AudioPlayer();
     _initAudio();
   }
@@ -280,41 +282,6 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
             "Detected Anxiety Level",
             style: TextStyle(color: Colors.black54, fontSize: 16),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMetricTile(
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withAlpha(20),
-            blurRadius: 10,
-            spreadRadius: 2,
-          ),
-        ],
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14)),
         ],
       ),
     );
