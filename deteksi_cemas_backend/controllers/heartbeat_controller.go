@@ -3,6 +3,7 @@ package controllers
 import (
 	"bytes"
 	"deteksi_cemas_backend/models"
+	"deteksi_cemas_backend/utils"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -122,9 +123,17 @@ func (hc *HeartbeatController) Analyze(c *gin.Context) {
 	// distances, not probabilities. Treat this as an approximation only.
 	confidence := softmaxConfidence(prediction.ClassScores, prediction.PredictedLabel)
 
+	// Translate the model's Indonesian label to the English label the
+	// mobile app expects, BEFORE saving -- so the DB and the API response
+	// always agree. ClassScores keeps the model's original Indonesian keys
+	// (Ringan/Sedang/Berat/Sangat Berat) since two of them currently map to
+	// the same English "severe" bucket and merging their scores isn't
+	// decided yet -- revisit this once the 4-vs-3 tier question is settled.
+	translatedLevel := utils.TranslateAnxietyLevel(prediction.PredictedLabel)
+
 	result := models.Result{
 		InspectionID: inspection.ID,
-		AnxietyLevel: prediction.PredictedLabel, // reusing existing column
+		AnxietyLevel: translatedLevel,          // now stores English, e.g. "severe"
 		AnxietyScore: confidence * 100,          // keeps old 0-100 scale convention
 		Confidence:   confidence,                // 0-1 scale, approximate
 		Hrv:          0,                         // not provided by heartbeat-api yet
@@ -152,16 +161,22 @@ func (hc *HeartbeatController) Analyze(c *gin.Context) {
 	})
 }
 
+// extractAudioPath pulls just the filename out of a stored audio URL,
+// e.g. "http://103.63.25.67:8080/uploads/rec_2247644.wav" -> "rec_2247644.wav"
+// Assumes files are stored flat in the uploads folder (no subfolders) --
+// matches how Upload() currently saves them ("uploads/" + file.Filename).
 func extractAudioPath(audioURL string) string {
 	return path.Base(audioURL)
 }
 
+// callHeartbeatAPI sends the audio path to heartbeat-api and returns the parsed result.
+// inspection.ID is `int` (per models.Inspection), so this takes an int, not uint.
 func callHeartbeatAPI(inspectionID int, audioPath string) (*models.HeartbeatPredictResponse, error) {
-    fmt.Println("Calling heartbeat-api with inspectionID:", inspectionID, "and audioPath:", audioPath)
-	baseURL := "http://103.63.25.67:8000" // e.g. http://heartbeat-api:8000 (internal docker network)
+	baseURL := os.Getenv("HEARTBEAT_API_URL") // e.g. http://heartbeat-api:8000 (internal docker network)
 	if baseURL == "" {
 		return nil, fmt.Errorf("HEARTBEAT_API_URL is not set")
 	}
+	apiKey := os.Getenv("INTERNAL_API_KEY")
 
 	reqBody := models.HeartbeatPredictRequest{
 		InspectionID: strconv.Itoa(inspectionID),
@@ -172,12 +187,16 @@ func callHeartbeatAPI(inspectionID int, audioPath string) (*models.HeartbeatPred
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
+	// Trim trailing slash on baseURL so we never end up with a double slash
+	// before /predict-by-path.
 	url := strings.TrimSuffix(baseURL, "/") + "/predict-by-path"
 
 	httpReq, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(bodyBytes))
 	if err != nil {
 		return nil, fmt.Errorf("failed to build request: %w", err)
 	}
+	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("x-internal-key", apiKey)
 
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(httpReq)
