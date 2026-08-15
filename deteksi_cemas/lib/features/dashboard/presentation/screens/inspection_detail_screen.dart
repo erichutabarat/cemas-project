@@ -1,4 +1,5 @@
 import 'package:deteksi_cemas/features/dashboard/domain/repository/heartbeat_repository.dart';
+import 'package:deteksi_cemas/features/survey/presentation/widgets/article_recommendation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:just_audio/just_audio.dart';
@@ -18,6 +19,17 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
   @override
   void initState() {
     super.initState();
+    print({
+      'id': widget.record.id,
+      'audioUrl': widget.record.audioUrl,
+      'checked': widget.record.checked,
+      'checkedAt': widget.record.checkedAt.toIso8601String(),
+      'bpm': widget.record.bpm,
+      'hrv': widget.record.hrv,
+      'anxietyScore': widget.record.anxietyScore,
+      'result': widget.record.result,
+      'confidence': widget.record.confidence,
+    });
     _audioPlayer = AudioPlayer();
     _initAudio();
   }
@@ -75,46 +87,6 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
             _buildHeaderCard(statusColor),
             const SizedBox(height: 24),
 
-            // 2. Metrics Grid
-            const Text(
-              "Heart Metrics",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              crossAxisSpacing: 15,
-              mainAxisSpacing: 15,
-              childAspectRatio: 1.5,
-              children: [
-                _buildMetricTile(
-                  "BPM",
-                  widget.record.bpm == 0 ? "N/A" : "${widget.record.bpm}",
-                  FontAwesomeIcons.heartPulse,
-                  Colors.red,
-                ),
-                _buildMetricTile(
-                  "HRV",
-                  widget.record.hrv == 0 ? "N/A" : "${widget.record.hrv} ms",
-                  FontAwesomeIcons.waveSquare,
-                  Colors.blue,
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
-
-            // 3. Audio Player Section
-            const Text(
-              "Heartbeat Recording",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            _buildAudioPlayerCard(),
-            const SizedBox(height: 32),
-
-            // 4. AI Analysis Section
             const Text(
               "AI Analysis Details",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -126,13 +98,18 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
               "How certain the AI is about this result.",
               Icons.psychology,
             ),
-            _buildInfoTile(
-              "Anxiety Score",
-              "${widget.record.anxietyScore.toStringAsFixed(1)}/100",
-              "Higher scores indicate more symptoms detected.",
-              Icons.analytics,
-            ),
+            const SizedBox(height: 12),
 
+            // 3. Audio Player Section
+            const Text(
+              "Heartbeat Recording",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            _buildAudioPlayerCard(),
+            const SizedBox(height: 32),
+
+            ArticleRecommendation(level: widget.record.result),
             const SizedBox(height: 32),
 
             // 5. Analyze Now Button (Conditional)
