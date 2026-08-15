@@ -172,12 +172,10 @@ func extractAudioPath(audioURL string) string {
 // callHeartbeatAPI sends the audio path to heartbeat-api and returns the parsed result.
 // inspection.ID is `int` (per models.Inspection), so this takes an int, not uint.
 func callHeartbeatAPI(inspectionID int, audioPath string) (*models.HeartbeatPredictResponse, error) {
-	baseURL := os.Getenv("HEARTBEAT_API_URL") // e.g. http://heartbeat-api:8000 (internal docker network)
+	baseURL := "http://103.63.25.67:8000" // e.g. http://heartbeat-api:8000 (internal docker network)
 	if baseURL == "" {
 		return nil, fmt.Errorf("HEARTBEAT_API_URL is not set")
 	}
-	apiKey := os.Getenv("INTERNAL_API_KEY")
-
 	reqBody := models.HeartbeatPredictRequest{
 		InspectionID: strconv.Itoa(inspectionID),
 		AudioPath:    audioPath,
@@ -195,8 +193,6 @@ func callHeartbeatAPI(inspectionID int, audioPath string) (*models.HeartbeatPred
 	if err != nil {
 		return nil, fmt.Errorf("failed to build request: %w", err)
 	}
-	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.Header.Set("x-internal-key", apiKey)
 
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(httpReq)
