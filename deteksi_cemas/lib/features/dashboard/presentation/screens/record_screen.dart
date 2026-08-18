@@ -244,7 +244,7 @@ class _RecordScreenState extends State<RecordScreen> {
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
-                    color: Colors.blue.shade400,
+                    color: Color(0xFF0B3A66),
                   ),
                   child: Column(
                     children: [

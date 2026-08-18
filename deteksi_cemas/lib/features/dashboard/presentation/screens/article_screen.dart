@@ -103,8 +103,11 @@ class _ArticleScreenState extends State<ArticleScreen> {
                   height: 50,
                   child: FilledButton.icon(
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(
-                        0xFF005F73,
+                      backgroundColor: Color.fromRGBO(
+                        0,
+                        95,
+                        115,
+                        0.8,
                       ), // Changes the background color to #005f73
                       foregroundColor: Colors
                           .white, // Changes the text and icon color (optional)
