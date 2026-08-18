@@ -221,8 +221,8 @@ class _RecordScreenState extends State<RecordScreen> {
                         ? Icons.stop_circle_rounded
                         : Icons.check_circle_rounded,
                     color: _recordStatus == RecordStatus.sent
-                        ? Colors.green
-                        : Colors.green.shade900,
+                        ? Color(0xFF005F73).withOpacity(0.8)
+                        : Color(0xFF005F73).withOpacity(0.9),
                     size: 50,
                   ),
                 ),
@@ -244,7 +244,7 @@ class _RecordScreenState extends State<RecordScreen> {
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
-                    color: Colors.blue.shade400,
+                    color: Color(0xFF0B3A66).withOpacity(0.8),
                   ),
                   child: Column(
                     children: [
