@@ -221,8 +221,8 @@ class _RecordScreenState extends State<RecordScreen> {
                         ? Icons.stop_circle_rounded
                         : Icons.check_circle_rounded,
                     color: _recordStatus == RecordStatus.sent
-                        ? Colors.green
-                        : Colors.green.shade900,
+                        ? Color(0xFF005F73).withOpacity(0.8)
+                        : Color(0xFF005F73).withOpacity(0.9),
                     size: 50,
                   ),
                 ),
