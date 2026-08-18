@@ -170,7 +170,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
               // heart rate zone
               Container(
                 padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                decoration: BoxDecoration(color: Colors.red.shade100),
+                decoration: BoxDecoration(
+                  color: Color(0xFFD6CFDB).withOpacity(0.8),
+                ),
                 child: Column(
                   children: [
                     Row(
